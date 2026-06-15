@@ -503,73 +503,161 @@ body::after {
 /* ================================================
    LABEL PREVIEW
    ================================================ */
+/* ================================================
+   LABEL PREVIEW (FDA Style)
+   ================================================ */
 #label-preview-wrapper {
-  background: var(--white);
-  border-radius: var(--radius-md);
-  padding: 2px;
-  box-shadow: 0 0 0 1px rgba(96,165,250,0.3), 0 8px 32px rgba(0,0,0,0.4);
+  background: #b4c2ac; /* Light organic green matching สสจ. template border */
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 #label-preview {
-  background: var(--white);
-  color: #1e293b;
-  border-radius: calc(var(--radius-md) - 2px);
-  padding: 24px 22px;
+  background: #ffffff; /* White background inner card */
+  color: #334155;
+  border-radius: 12px;
+  padding: 30px 24px;
   font-family: 'Prompt', sans-serif;
-  min-height: 80px;
-  line-height: 1.85;
-  font-size: 0.88rem;
+  min-height: 200px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
 }
-#label-preview .lbl-product-name {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #1e3a5f;
-  padding-bottom: 10px;
-  margin-bottom: 12px;
-  border-bottom: 2px solid #2563eb;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-#label-preview .lbl-type {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #64748b;
-  background: #dbeafe;
-  padding: 2px 10px;
-  border-radius: 99px;
-}
-#label-preview .lbl-row { margin-bottom: 3px; }
-#label-preview .lbl-key { font-weight: 700; color: #2563eb; }
-#label-preview .lbl-warn {
-  margin-top: 12px;
-  background: #fef3c7;
-  border-left: 3px solid #f59e0b;
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 0.82rem;
-  color: #78350f;
-}
-#label-preview .lbl-footer {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid #e2e8f0;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  text-align: right;
-}
-.label-placeholder {
+#label-preview .label-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  color: rgba(100,116,139,0.6);
-  gap: 10px;
+  padding: 60px 20px;
+  color: #64748b;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 10px;
 }
-.label-placeholder .ph-icon { font-size: 2.5rem; opacity: 0.4; }
-.label-placeholder p { font-size: 0.85rem; }
+#label-preview .label-placeholder .ph-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+  color: #16a34a;
+}
+#label-preview .lbl-watermark {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  width: 90px;
+  height: 90px;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 1;
+}
+#label-preview .lbl-header {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 12px;
+}
+#label-preview .lbl-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.3;
+}
+#label-preview .lbl-type-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 2px 12px;
+  border-radius: 99px;
+  margin-top: 6px;
+}
+#label-preview .lbl-body {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 24px;
+}
+#label-preview .lbl-section {
+  margin-bottom: 14px;
+  text-align: left;
+}
+#label-preview .lbl-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+#label-preview .lbl-section-text {
+  font-size: 0.86rem;
+  color: #334155;
+  line-height: 1.6;
+}
+#label-preview .lbl-warning-section {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  padding: 8px 12px;
+  border-radius: 0 6px 6px 0;
+}
+#label-preview .lbl-warning-section .lbl-section-title {
+  color: #b45309;
+}
+#label-preview .lbl-warning-section .lbl-section-text {
+  color: #78350f;
+  font-weight: 500;
+}
+#label-preview .lbl-mfr-block {
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 12px;
+}
+#label-preview .lbl-mfr-name {
+  font-size: 0.84rem;
+  color: #475569;
+  line-height: 1.5;
+}
+#label-preview .lbl-weight {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 4px;
+}
+#label-preview .lbl-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  position: relative;
+  z-index: 2;
+  font-size: 0.76rem;
+  color: #64748b;
+}
+#label-preview .lbl-footer-left {
+  flex: 1.2;
+  text-align: left;
+}
+#label-preview .lbl-footer-right {
+  flex: 0.8;
+  text-align: right;
+}
+#label-preview .lbl-notify {
+  font-weight: 600;
+  color: #475569;
+}
+#label-preview .lbl-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
 
 /* ================================================
    ANALYSIS ITEMS
@@ -1592,6 +1680,124 @@ function checkClaimsRealtime() {
 /* ============================================================
    AUTO PREVIEW
    ============================================================ */
+/* ============================================================
+   BOTANICAL/INGREDIENT SVG WATERMARK GENERATOR
+   ============================================================ */
+function getIngredientSvg(name) {
+  name = name.toLowerCase();
+  
+  // 1. Rose Apple (ชมพู่)
+  if (name.includes('ชมพู่') || name.includes('rose apple')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <path d="M50,15 C55,15 62,25 65,35 C68,48 72,62 70,72 C68,82 58,88 50,88 C42,88 32,82 30,72 C28,62 32,48 35,35 C38,25 45,15 50,15 Z" fill="none" stroke="#db2777" stroke-width="2" stroke-linecap="round"/>
+      <path d="M50,15 C55,10 65,10 70,14 C73,17 73,22 68,26 C63,30 55,22 50,15 Z" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="50" cy="80" r="4" fill="none" stroke="#db2777" stroke-width="1"/>
+    </svg>`;
+  }
+  
+  // 2. Orange (ส้ม / ยูสุ)
+  if (name.includes('ส้ม') || name.includes('orange') || name.includes('yuzu') || name.includes('ยูสุ') || name.includes('lemon') || name.includes('มะนาว')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <circle cx="50" cy="50" r="35" fill="none" stroke="#ea580c" stroke-width="2.5"/>
+      <circle cx="50" cy="50" r="31" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="2,2"/>
+      <circle cx="50" cy="50" r="3" fill="#ea580c"/>
+      <line x1="50" y1="19" x2="50" y2="46" stroke="#ea580c" stroke-width="1.5"/>
+      <line x1="50" y1="54" x2="50" y2="81" stroke="#ea580c" stroke-width="1.5"/>
+      <line x1="19" y1="50" x2="46" y2="50" stroke="#ea580c" stroke-width="1.5"/>
+      <line x1="54" y1="50" x2="81" y2="50" stroke="#ea580c" stroke-width="1.5"/>
+      <line x1="28" y1="28" x2="47" y2="47" stroke="#ea580c" stroke-width="1.5"/>
+      <line x1="53" y1="53" x2="72" y2="72" stroke="#ea580c" stroke-width="1.5"/>
+      <line x1="72" y1="28" x2="53" y2="47" stroke="#ea580c" stroke-width="1.5"/>
+      <line x1="47" y1="53" x2="28" y2="72" stroke="#ea580c" stroke-width="1.5"/>
+      <path d="M50,15 C52,5 65,5 72,12 C72,25 58,25 50,15 Z" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+    </svg>`;
+  }
+
+  // 3. Aloe Vera (ว่านหางจระเข้)
+  if (name.includes('ว่านหาง') || name.includes('aloe') || name.includes('อโล')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <path d="M50,85 C45,65 30,50 25,30 C35,45 45,65 50,85 Z" fill="none" stroke="#16a34a" stroke-width="2"/>
+      <path d="M50,85 C52,60 62,40 70,20 C62,45 55,68 50,85 Z" fill="none" stroke="#16a34a" stroke-width="2"/>
+      <path d="M50,85 C48,70 38,62 38,45 C43,60 48,72 50,85 Z" fill="none" stroke="#15803d" stroke-width="1.5"/>
+      <path d="M50,85 C52,72 58,60 62,48 C57,62 53,75 50,85 Z" fill="none" stroke="#15803d" stroke-width="1.5"/>
+      <path d="M50,85 C50,60 46,45 48,25 C49,45 50,65 50,85 Z" fill="none" stroke="#16a34a" stroke-width="2"/>
+    </svg>`;
+  }
+
+  // 4. Coconut (มะพร้าว)
+  if (name.includes('มะพร้าว') || name.includes('coconut')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <circle cx="42" cy="62" r="18" fill="none" stroke="#854d0e" stroke-width="2"/>
+      <circle cx="42" cy="62" r="14" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+      <circle cx="62" cy="52" r="16" fill="none" stroke="#854d0e" stroke-width="2"/>
+      <path d="M 58 46 Q 64 36 78 34" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M 58 46 Q 52 32 60 22" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="36" cy="56" r="2" fill="#854d0e"/>
+      <circle cx="42" cy="52" r="2" fill="#854d0e"/>
+      <circle cx="44" cy="58" r="2" fill="#854d0e"/>
+    </svg>`;
+  }
+
+  // 5. Honey (น้ำผึ้ง)
+  if (name.includes('น้ำผึ้ง') || name.includes('honey') || name.includes('ผึ้ง')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <polygon points="50,22 65,30 65,48 50,56 35,48 35,30" fill="none" stroke="#d97706" stroke-width="2"/>
+      <polygon points="65,48 80,56 80,74 65,82 50,74 50,56" fill="none" stroke="#d97706" stroke-width="1.5"/>
+      <polygon points="35,48 50,56 50,74 35,82 20,74 20,48" fill="none" stroke="#d97706" stroke-width="1.5"/>
+      <path d="M50,42 C52,48 58,48 58,52 C58,56 52,58 50,58 C48,58 42,56 42,52 C42,48 48,48 50,42 Z" fill="#d97706"/>
+    </svg>`;
+  }
+
+  // 6. Milk (นม)
+  if (name.includes('นม') || name.includes('milk') || name.includes('goat')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <path d="M50,25 Q53,45 68,48 Q78,50 68,54 Q50,60 50,82 Q47,60 32,54 Q22,50 32,48 Q47,45 50,25 Z" fill="none" stroke="#0284c7" stroke-width="2"/>
+      <circle cx="50" cy="80" r="3" fill="#0284c7"/>
+      <circle cx="68" cy="40" r="2.5" fill="#0284c7"/>
+      <circle cx="32" cy="40" r="2.5" fill="#0284c7"/>
+    </svg>`;
+  }
+
+  // 7. Tomato (มะเขือเทศ)
+  if (name.includes('มะเขือเทศ') || name.includes('tomato')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <circle cx="50" cy="55" r="25" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+      <path d="M48,32 Q50,22 55,20" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M42,32 L47,35 L50,30 L53,35 L58,32 L53,38 L47,38 Z" fill="#16a34a"/>
+    </svg>`;
+  }
+
+  // 8. Rose / Flower (กุหลาบ / มะลิ / ดอกไม้)
+  if (name.includes('กุหลาบ') || name.includes('rose') || name.includes('ดอกไม้') || name.includes('มะลิ') || name.includes('flower') || name.includes('jasmine')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <circle cx="50" cy="50" r="8" fill="none" stroke="#db2777" stroke-width="1.5"/>
+      <path d="M45,43 C50,35 60,38 62,45 C64,52 58,58 50,58 C42,58 36,50 40,43" fill="none" stroke="#db2777" stroke-width="1.5"/>
+      <path d="M38,38 C48,25 65,28 68,38 C71,48 64,65 50,65 C36,65 28,52 34,38" fill="none" stroke="#db2777" stroke-width="1.5"/>
+      <path d="M50,65 Q58,78 72,74" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+      <path d="M55,70 C62,65 72,70 75,75 Z" fill="none" stroke="#16a34a" stroke-width="1"/>
+    </svg>`;
+  }
+
+  // 9. Tea (ชา / ชาเขียว)
+  if (name.includes('ชา') || name.includes('tea')) {
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+      <path d="M35,65 C35,45 52,40 58,25 C55,42 42,55 35,65 Z" fill="none" stroke="#16a34a" stroke-width="2"/>
+      <path d="M35,65 L52,42" fill="none" stroke="#16a34a" stroke-width="1"/>
+      <path d="M45,75 C52,60 65,58 70,48 C65,60 55,68 45,75 Z" fill="none" stroke="#15803d" stroke-width="1.5"/>
+    </svg>`;
+  }
+
+  // 10. Default: Botanical Branch (ใบไม้ธรรมชาติ)
+  return `<svg viewBox="0 0 100 100" width="100%" height="100%">
+    <path d="M30,80 Q50,70 65,30" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+    <path d="M65,30 C65,20 58,22 52,28 C48,32 58,38 65,30 Z" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+    <path d="M56,42 C50,35 42,40 45,48 C48,52 53,48 56,42 Z" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+    <path d="M61,45 C68,40 73,46 70,52 C67,56 63,50 61,45 Z" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+    <path d="M47,56 C40,50 33,56 36,63 C39,66 44,62 47,56 Z" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+    <path d="M52,60 C60,55 64,62 61,68 C58,72 54,66 52,60 Z" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+  </svg>`;
+}
+
 function autoPreview() {
   const name = document.getElementById("name").value.trim();
   const type = document.getElementById("type").value || document.getElementById("typeOther").value || "";
@@ -1620,20 +1826,56 @@ function autoPreview() {
   };
 
   document.getElementById("label-preview").innerHTML = `
-    <div class="lbl-product-name">
-      ${esc(name)}
-      ${type ? `<span class="lbl-type">${esc(type)}</span>` : ''}
+    <!-- Watermark SVG based on product name keywords -->
+    <div class="lbl-watermark">${getIngredientSvg(name)}</div>
+
+    <!-- Header Block (Centered like FDA template) -->
+    <div class="lbl-header">
+      <div class="lbl-title">${esc(name)}</div>
+      ${type ? `<div class="lbl-type-badge">${esc(type)}</div>` : ''}
     </div>
-    ${ing    ? `<div class="lbl-row"><span class="lbl-key">ส่วนประกอบ:</span> ${esc(ing)}</div>` : ''}
-    ${usage  ? `<div class="lbl-row"><span class="lbl-key">วิธีใช้:</span> ${esc(usage)}</div>` : ''}
-    ${mfr    ? `<div class="lbl-row"><span class="lbl-key">ผู้ผลิต:</span> ${esc(mfr).replace(/\n/g,'<br>')}</div>` : ''}
-    ${weight ? `<div class="lbl-row"><span class="lbl-key">ปริมาณสุทธิ:</span> ${esc(weight)}</div>` : ''}
-    ${lot    ? `<div class="lbl-row"><span class="lbl-key">ครั้งที่ผลิต:</span> ${esc(lot)}</div>` : ''}
-    ${mfg    ? `<div class="lbl-row"><span class="lbl-key">วันที่ผลิต:</span> ${fmtDate(mfg)}</div>` : ''}
-    ${exp    ? `<div class="lbl-row"><span class="lbl-key">วันหมดอายุ:</span> ${fmtDate(exp)}</div>` : ''}
-    ${notify ? `<div class="lbl-row"><span class="lbl-key">เลขที่ใบรับจดแจ้ง:</span> ${esc(notify)}</div>` : ''}
-    ${claim  ? `<div class="lbl-warn">⚠️ <strong>คำเตือน:</strong> ${esc(claim)}</div>` : ''}
-    <div class="lbl-footer">สร้างโดย Smart Cosme — สสจ.ศรีสะเกษ</div>
+
+    <!-- Body Information Block -->
+    <div class="lbl-body">
+      ${ing ? `
+      <div class="lbl-section">
+        <div class="lbl-section-title">ส่วนประกอบ / Ingredients</div>
+        <div class="lbl-section-text">${esc(ing)}</div>
+      </div>` : ''}
+
+      ${usage ? `
+      <div class="lbl-section">
+        <div class="lbl-section-title">วิธีใช้ / Directions</div>
+        <div class="lbl-section-text">${esc(usage)}</div>
+      </div>` : ''}
+
+      ${claim ? `
+      <div class="lbl-section lbl-warning-section">
+        <div class="lbl-section-title">คำเตือน / Warning</div>
+        <div class="lbl-section-text">${esc(claim)}</div>
+      </div>` : ''}
+    </div>
+
+    <!-- Manufacturer Block (Centered) -->
+    ${mfr || weight ? `
+    <div class="lbl-mfr-block">
+      ${mfr ? `<div class="lbl-mfr-name">ผลิตโดย: ${esc(mfr).replace(/\n/g,'<br>')}</div>` : ''}
+      ${weight ? `<div class="lbl-weight">ปริมาณสุทธิ ${esc(weight)}</div>` : ''}
+    </div>` : ''}
+
+    <!-- Bottom Row (Flex space-between for Notification No. and Batch/Dates) -->
+    <div class="lbl-footer-row">
+      <div class="lbl-footer-left">
+        <div class="lbl-notify">เลขที่ใบรับจดแจ้ง: ${notify ? esc(notify) : 'xx-x-xxxxxxxxxx'}</div>
+      </div>
+      <div class="lbl-footer-right">
+        <div class="lbl-dates">
+          <div>ครั้งที่ผลิต: ${lot ? esc(lot) : '-'}</div>
+          <div>วันที่ผลิต: ${mfg ? fmtDate(mfg) : '-'}</div>
+          <div>วันที่หมดอายุ: ${exp ? fmtDate(exp) : '-'}</div>
+        </div>
+      </div>
+    </div>
   `;
 }
 
