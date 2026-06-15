@@ -4,7 +4,7 @@
   "description": "Smart Cosme Label Verification App",
   "scripts": {
     "install": "cd server && npm install",
-    "build": "cd server && npm install && npx prisma generate",
+    "build": "cd server && npm install && mkdir -p data && npx prisma generate && npx prisma db push && node seed.js",
     "start": "cd server && node server.js"
   },
   "engines": {
