@@ -423,7 +423,7 @@ async function main() {
     console.log('✅ เชื่อมต่อฐานข้อมูล SQLite สำเร็จ');
 
     // Bind เฉพาะ 127.0.0.1 — ไม่เปิดสู่ภายนอก
-    app.listen(PORT, '127.0.0.1', () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log('');
       console.log('╔══════════════════════════════════════════════╗');
       console.log('║        Smart Cosme API — สสจ.ศรีสะเกษ       ║');
