@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Cosme — เข้าสู่ระบบ | สสจ.ศรีสะเกษ</title>
+<meta name="description" content="ระบบเข้าสู่ระบบสำหรับผู้ประกอบการเครื่องสำอาง สำนักงานสาธารณสุขจังหวัดศรีสะเกษ">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS — White / Light-Blue Glow Theme
+   ============================================================ */
+:root {
+  --bg:        #f0f6ff;
+  --bg2:       #ffffff;
+  --blue-900:  #0f2d5e;
+  --blue-700:  #1d4ed8;
+  --blue-600:  #2563eb;
+  --blue-500:  #3b82f6;
+  --blue-400:  #60a5fa;
+  --blue-300:  #93c5fd;
+  --blue-100:  #dbeafe;
+  --blue-50:   #eff6ff;
+  --gold:      #d97706;
+  --gold-lt:   #fbbf24;
+  --green:     #16a34a;
+  --green-lt:  #22c55e;
+  --red:       #dc2626;
+  --text:      #0f172a;
+  --text-mid:  #334155;
+  --text-soft: #64748b;
+  --border:    rgba(37,99,235,0.18);
+  --card-shadow: 0 4px 32px rgba(37,99,235,0.13);
+  --glow:      0 0 0 3px rgba(96,165,250,0.22);
+  --glow-card: 0 0 40px rgba(96,165,250,0.18);
+  --radius:    16px;
+  --trans:     all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body {
+  font-family: 'Prompt', sans-serif;
+  background: linear-gradient(150deg, #e8f3ff 0%, #f5f9ff 40%, #edf5ff 100%);
+  min-height: 100vh;
+  color: var(--text);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Floating glow blobs */
+body::before, body::after {
+  content: ''; position: fixed; border-radius: 50%;
+  filter: blur(80px); pointer-events: none; z-index: 0;
+}
+body::before {
+  width: 550px; height: 550px;
+  background: radial-gradient(circle, rgba(96,165,250,0.25) 0%, transparent 70%);
+  top: -180px; left: -150px;
+  animation: b1 14s ease-in-out infinite alternate;
+}
+body::after {
+  width: 450px; height: 450px;
+  background: radial-gradient(circle, rgba(147,197,253,0.2) 0%, transparent 70%);
+  bottom: -150px; right: -100px;
+  animation: b2 18s ease-in-out infinite alternate;
+}
+@keyframes b1{to{transform:translate(80px,50px) scale(1.1)}}
+@keyframes b2{to{transform:translate(-50px,-30px) scale(0.9)}}
+
+/* Extra blob center */
+.blob-mid {
+  position: fixed; width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+  filter: blur(60px); pointer-events: none; z-index: 0;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation: bm 20s ease-in-out infinite alternate;
+}
+@keyframes bm{to{transform:translate(-40%,-60%) scale(1.2)}}
+
+/* ============================================================
+   PAGE LAYOUT
+   ============================================================ */
+.page {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+}
+
+/* LEFT PANEL */
+.left-panel {
+  width: 420px; flex-shrink: 0;
+  background: linear-gradient(170deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 36px;
+  position: relative; overflow: hidden;
+}
+.left-panel::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.left-panel::after {
+  content: '';
+  position: absolute; bottom: -100px; right: -100px;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  filter: blur(30px);
+}
+
+/* SEAL */
+.seal-wrapper {
+  position: relative; z-index: 1;
+  width: 190px; height: 190px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 28px;
+  animation: sealGlow 3s ease-in-out infinite alternate;
+  padding: 0;
+}
+@keyframes sealGlow {
+  from {
+    filter: drop-shadow(0 0 10px rgba(34,197,94,0.6))
+            drop-shadow(0 0 25px rgba(22,163,74,0.45))
+            drop-shadow(0 0 50px rgba(16,185,129,0.25));
+  }
+  to {
+    filter: drop-shadow(0 0 18px rgba(74,222,128,0.85))
+            drop-shadow(0 0 45px rgba(34,197,94,0.6))
+            drop-shadow(0 0 90px rgba(16,185,129,0.4));
+  }
+}
+.seal-wrapper img {
+  width: 100%; height: 100%; border-radius: 50%;
+  object-fit: cover;
+}
+
+.brand-name {
+  font-size: 2.2rem; font-weight: 800; letter-spacing: 2px;
+  color: var(--white, #fff);
+  text-shadow: 0 2px 16px rgba(0,0,0,0.3);
+  position: relative; z-index: 1;
+  background: linear-gradient(90deg,#fff,#bfdbfe,#fff);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: shimmer 3s linear infinite;
+  margin-bottom: 6px;
+}
+@keyframes shimmer{0%{background-position:0 0}100%{background-position:200% 0}}
+
+.brand-sub {
+  font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.75);
+  text-align: center; line-height: 1.6; position: relative; z-index: 1;
+  margin-bottom: 32px;
+}
+
+/* Feature list */
+.features { position: relative; z-index: 1; width: 100%; }
+.feat-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: 12px;
+  background: rgba(255,255,255,0.09);
+  border: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 10px;
+  backdrop-filter: blur(4px);
+}
+.feat-icon { font-size: 1.3rem; flex-shrink: 0; }
+.feat-text { font-size: 0.8rem; color: rgba(255,255,255,0.85); line-height: 1.4; }
+.feat-text strong { color: #fff; display: block; font-weight: 700; }
+
+.left-footer {
+  position: relative; z-index: 1; margin-top: 28px;
+  font-size: 0.7rem; color: rgba(255,255,255,0.35); text-align: center;
+}
+
+/* RIGHT PANEL */
+.right-panel {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px 24px;
+}
+
+/* AUTH CARD */
+.auth-card {
+  width: 100%; max-width: 480px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(147,197,253,0.4);
+  border-radius: 24px;
+  box-shadow: var(--card-shadow), var(--glow-card);
+  overflow: hidden;
+  position: relative;
+}
+.auth-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #2563eb, #60a5fa, #93c5fd, #60a5fa, #2563eb);
+  background-size: 400% 100%;
+  animation: topbar 4s linear infinite;
+}
+@keyframes topbar{0%{background-position:0 0}100%{background-position:400% 0}}
+
+/* TABS */
+.tab-bar {
+  display: flex;
+  margin: 20px 24px 0;
+  background: #f0f6ff;
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid var(--blue-100);
+}
+.tab-btn {
+  flex: 1; padding: 10px 14px;
+  border: none; border-radius: 9px;
+  background: transparent; color: var(--text-soft);
+  font-family: 'Prompt', sans-serif; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: var(--trans);
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(37,99,235,0.35);
+}
+
+/* FORM PANELS */
+.tab-panel { display: none; padding: 22px 24px 28px; }
+.tab-panel.active { display: block; animation: fadeUp 0.3s ease; }
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* FORM FIELDS */
+.fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.fl {
+  font-size: 0.74rem; font-weight: 700; color: var(--text-mid);
+  letter-spacing: 0.3px;
+}
+.req { color: #ef4444; }
+.fi, .fs {
+  padding: 11px 14px;
+  background: #f8fbff;
+  border: 1.5px solid #c7dcfd;
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'Prompt', sans-serif; font-size: 0.86rem;
+  transition: var(--trans); outline: none; width: 100%;
+}
+.fi::placeholder { color: #94a3b8; }
+.fi:focus, .fs:focus {
+  border-color: var(--blue-500);
+  background: #fff;
+  box-shadow: var(--glow);
+}
+.fi.err, .fs.err {
+  border-color: #ef4444 !important;
+  background: #fff5f5 !important;
+}
+.fs {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%232563eb' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  cursor: pointer; background-color: #f8fbff;
+}
+.fs option { background: #fff; color: var(--text); }
+
+/* Grid */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.full { grid-column: 1/-1; }
+
+/* Password toggle */
+.pw-wrap { position: relative; }
+.pw-wrap .fi { padding-right: 42px; }
+.pw-eye {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: #94a3b8; font-size: 1rem; transition: var(--trans); line-height: 1;
+}
+.pw-eye:hover { color: var(--blue-500); }
+
+/* Strength bar */
+.strength-bar { height: 4px; border-radius: 99px; background: #e2e8f0; overflow: hidden; margin-top: 5px; }
+.strength-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.4s; }
+.strength-label { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; text-align: right; }
+
+/* Error messages */
+.err-msg { font-size: 0.72rem; color: #ef4444; margin-top: 2px; display: none; }
+.err-msg.show { display: block; }
+
+/* Checkbox */
+.chk-row { display: flex; align-items: flex-start; gap: 9px; margin: 10px 0 4px; }
+.chk-row input[type="checkbox"] { width:16px;height:16px;accent-color:var(--blue-500);cursor:pointer;margin-top:2px;flex-shrink:0; }
+.chk-row label { font-size: 0.78rem; color: var(--text-soft); line-height: 1.5; cursor: pointer; }
+
+/* Buttons */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; padding: 13px; border: none; border-radius: 11px;
+  font-family: 'Prompt', sans-serif; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; transition: var(--trans);
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(37,99,235,0.3);
+  margin-top: 14px;
+}
+.btn-primary:hover { box-shadow: 0 6px 26px rgba(37,99,235,0.45); transform: translateY(-1px); }
+.btn-back {
+  background: #f0f6ff; color: var(--text-soft);
+  border: 1px solid #c7dcfd; flex: 0 0 80px; margin-top: 0;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 10px; padding: 11px 14px; font-size: 0.83rem;
+  line-height: 1.6; margin-bottom: 12px; display: none;
+}
+.alert.show { display: block; animation: fadeUp 0.3s ease; }
+.alert-err { background: #fff5f5; border: 1px solid #fca5a5; color: #991b1b; }
+.alert-ok  { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+
+/* Spinner */
+.spin { width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block; }
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Form section divider */
+.form-section {
+  font-size: 0.71rem; font-weight: 700; color: #94a3b8;
+  letter-spacing: 1px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px; margin: 14px 0 10px;
+}
+.form-section::after { content:''; flex:1; height:1px; background:#e2e8f0; }
+
+/* Steps */
+.steps { display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:18px; }
+.step-dot {
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.74rem;font-weight:700;transition:var(--trans);
+  background:#f0f6ff;border:1.5px solid #c7dcfd;color:#94a3b8;
+}
+.step-dot.active {
+  background:var(--blue-600);border-color:var(--blue-500);color:#fff;
+  box-shadow:0 0 12px rgba(37,99,235,0.35);
+}
+.step-dot.done { background:#16a34a;border-color:#22c55e;color:#fff; }
+.step-line { flex:1;max-width:40px;height:2px;background:#e2e8f0;border-radius:99px; }
+.step-line.done { background:var(--green-lt); }
+
+.reg-step { display: none; }
+.reg-step.active { display: block; animation: fadeUp 0.3s ease; }
+
+/* Link */
+.auth-link { text-align:center;font-size:0.8rem;color:var(--text-soft);margin-top:14px; }
+.auth-link a { color:var(--blue-600);text-decoration:none;font-weight:600; }
+.auth-link a:hover { text-decoration:underline; }
+
+/* Footer */
+.auth-footer {
+  text-align:center;padding:12px 24px;font-size:0.7rem;color:#94a3b8;
+  border-top:1px solid #e8f0fe;background:#fafcff;
+}
+
+/* INFO BOX */
+.info-box {
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  border-radius: 9px; padding: 10px 13px;
+  font-size: 0.78rem; color: var(--blue-700); line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:768px){
+  .page { flex-direction: column; }
+  .left-panel {
+    width: 100%; padding: 28px 20px;
+    min-height: unset;
+  }
+  .seal-wrapper { width: 110px; height: 110px; margin-bottom: 16px; }
+  .brand-name { font-size: 1.6rem; }
+  .features { display: none; }
+  .right-panel { padding: 20px 16px 36px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .full { grid-column: 1; }
+  .tab-bar,.tab-panel { padding-left: 16px; padding-right: 16px; }
+  .tab-bar { margin-left: 16px; margin-right: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="blob-mid"></div>
+
+<div class="page">
+
+  <!-- ==================== LEFT PANEL ==================== -->
+  <div class="left-panel">
+
+    <!-- SEAL -->
+    <div class="seal-wrapper">
+      <img src="logo_new.jpg" alt="ตราสำนักงานสาธารณสุขจังหวัดศรีสะเกษ" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'font-size:3rem;line-height:1;\'>🏥</div>'">
+    </div>
+
+    <div class="brand-name">Smart Cosme</div>
+    <div class="brand-sub">
+      สำนักงานสาธารณสุขจังหวัดศรีสะเกษ<br>
+      ระบบออกแบบและตรวจสอบฉลากเครื่องสำอาง
+    </div>
+
+    <div class="features">
+      <div class="feat-item">
+        <span class="feat-icon">🏷️</span>
+        <div class="feat-text">
+          <strong>ออกแบบฉลากอัตโนมัติ</strong>
+          ตามมาตรฐาน พ.ร.บ. เครื่องสำอาง พ.ศ. 2558
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-icon">🔍</span>
+        <div class="feat-text">
+          <strong>ตรวจสอบฉลากจากรูปภาพ</strong>
+          ด้วยระบบ OCR + AI วิเคราะห์
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-icon">🚫</span>
+        <div class="feat-text">
+          <strong>ตรวจคำต้องห้ามอัตโนมัติ</strong>
+          ตาม มาตรา 41 ครบทั้ง 4 หมวด
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-icon">📤</span>
+        <div class="feat-text">
+          <strong>ส่งออก PDF / PNG</strong>
+          พร้อมพิมพ์ฉลากได้ทันที
+        </div>
+      </div>
+    </div>
+
+    <div class="left-footer">
+      © 2568 สำนักงานสาธารณสุขจังหวัดศรีสะเกษ<br>
+      ข้อมูลปลอดภัย · มาตรฐานสากล ISO 8601
+    </div>
+  </div>
+
+  <!-- ==================== RIGHT PANEL ==================== -->
+  <div class="right-panel">
+    <div class="auth-card">
+
+      <!-- TABS -->
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">🔑 เข้าสู่ระบบ</button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">📝 สมัครสมาชิก</button>
+      </div>
+
+      <!-- ========= LOGIN ========= -->
+      <div class="tab-panel active" id="panel-login">
+        <div class="alert alert-err" id="login-err"></div>
+        <div class="alert alert-ok"  id="login-ok"></div>
+
+        <div class="fg">
+          <label class="fl" for="l-email">อีเมล <span class="req">*</span></label>
+          <input type="email" id="l-email" class="fi" placeholder="example@email.com" autocomplete="email">
+          <div class="err-msg" id="l-email-err">กรุณากรอกอีเมลที่ถูกต้อง</div>
+        </div>
+
+        <div class="fg">
+          <label class="fl" for="l-pwd">รหัสผ่าน <span class="req">*</span></label>
+          <div class="pw-wrap">
+            <input type="password" id="l-pwd" class="fi" placeholder="••••••••" autocomplete="current-password">
+            <button class="pw-eye" onclick="togglePw('l-pwd',this)" type="button">👁️</button>
+          </div>
+          <div class="err-msg" id="l-pwd-err">กรุณากรอกรหัสผ่าน</div>
+        </div>
+
+        <div class="chk-row" style="margin-top:6px;">
+          <input type="checkbox" id="remember">
+          <label for="remember">จดจำการเข้าสู่ระบบ (24 ชั่วโมง)</label>
+        </div>
+
+        <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">🔑 เข้าสู่ระบบ</button>
+
+        <div class="auth-link">
+          ยังไม่มีบัญชี? <a href="#" onclick="switchTab('register');return false;">สมัครสมาชิกฟรี</a>
+        </div>
+      </div>
+
+      <!-- ========= REGISTER ========= -->
+      <div class="tab-panel" id="panel-register">
+
+        <!-- Step dots -->
+        <div class="steps">
+          <div class="step-dot active" id="sd1">1</div>
+          <div class="step-line" id="sl1"></div>
+          <div class="step-dot" id="sd2">2</div>
+          <div class="step-line" id="sl2"></div>
+          <div class="step-dot" id="sd3">3</div>
+        </div>
+
+        <div class="alert alert-err" id="reg-err"></div>
+        <div class="alert alert-ok"  id="reg-ok"></div>
+
+        <!-- STEP 1 -->
+        <div class="reg-step active" id="reg-step1">
+          <div class="form-section">ข้อมูลส่วนตัว</div>
+          <div class="form-grid">
+            <div class="fg">
+              <label class="fl" for="r-fname">ชื่อ <span class="req">*</span></label>
+              <input type="text" id="r-fname" class="fi" placeholder="ชื่อ">
+            </div>
+            <div class="fg">
+              <label class="fl" for="r-lname">นามสกุล <span class="req">*</span></label>
+              <input type="text" id="r-lname" class="fi" placeholder="นามสกุล">
+            </div>
+            <div class="fg full">
+              <label class="fl" for="r-idcard">เลขบัตรประชาชน <span style="color:#94a3b8;font-weight:400;">(ถ้ามี)</span></label>
+              <input type="text" id="r-idcard" class="fi" placeholder="13 หลัก" maxlength="13" oninput="this.value=this.value.replace(/\D/g,'')">
+              <div class="err-msg" id="r-idcard-err">เลขบัตรต้องมี 13 หลัก</div>
+            </div>
+            <div class="fg full">
+              <label class="fl" for="r-phone">เบอร์โทรศัพท์ <span class="req">*</span></label>
+              <input type="tel" id="r-phone" class="fi" placeholder="เช่น 0812345678" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+              <div class="err-msg" id="r-phone-err">กรุณากรอกเบอร์โทร 9-10 หลัก</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:10px;" onclick="stepNext(1)">ถัดไป →</button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="reg-step" id="reg-step2">
+          <div class="form-section">ข้อมูลกิจการ</div>
+          <div class="fg">
+            <label class="fl" for="r-biz">ชื่อกิจการ / ร้านค้า <span class="req">*</span></label>
+            <input type="text" id="r-biz" class="fi" placeholder="เช่น ร้านสมุนไพรไทย">
+          </div>
+          <div class="fg">
+            <label class="fl" for="r-biztype">ประเภทผลิตภัณฑ์หลัก <span class="req">*</span></label>
+            <select id="r-biztype" class="fs">
+              <option value="">-- เลือกประเภท --</option>
+              <option>ครีมบำรุงผิว</option><option>เซรั่ม</option><option>โลชั่น</option>
+              <option>แชมพู / ครีมนวดผม</option><option>ครีมกันแดด</option>
+              <option>ลิปสติก / เครื่องสำอาง</option><option>สบู่</option>
+              <option>น้ำหอม</option><option>ผลิตภัณฑ์สมุนไพร</option><option>อื่นๆ</option>
+            </select>
+            <div class="err-msg" id="r-biztype-err">กรุณาเลือกประเภทผลิตภัณฑ์</div>
+          </div>
+          <div class="fg">
+            <label class="fl" for="r-province">จังหวัด <span class="req">*</span></label>
+            <select id="r-province" class="fs">
+              <option value="">-- เลือกจังหวัด --</option>
+              <option selected>ศรีสะเกษ</option>
+              <option>กรุงเทพมหานคร</option><option>กระบี่</option><option>กาญจนบุรี</option>
+              <option>กาฬสินธุ์</option><option>กำแพงเพชร</option><option>ขอนแก่น</option>
+              <option>จันทบุรี</option><option>ฉะเชิงเทรา</option><option>ชลบุรี</option>
+              <option>ชัยนาท</option><option>ชัยภูมิ</option><option>ชุมพร</option>
+              <option>เชียงราย</option><option>เชียงใหม่</option><option>ตรัง</option>
+              <option>ตราด</option><option>ตาก</option><option>นครนายก</option>
+              <option>นครปฐม</option><option>นครพนม</option><option>นครราชสีมา</option>
+              <option>นครสวรรค์</option><option>นครศรีธรรมราช</option><option>นนทบุรี</option>
+              <option>นราธิวาส</option><option>น่าน</option><option>บึงกาฬ</option>
+              <option>บุรีรัมย์</option><option>ปทุมธานี</option><option>ประจวบคีรีขันธ์</option>
+              <option>ปราจีนบุรี</option><option>ปัตตานี</option><option>พระนครศรีอยุธยา</option>
+              <option>พะเยา</option><option>พังงา</option><option>พัทลุง</option>
+              <option>พิจิตร</option><option>พิษณุโลก</option><option>เพชรบุรี</option>
+              <option>เพชรบูรณ์</option><option>แพร่</option><option>ภูเก็ต</option>
+              <option>มหาสารคาม</option><option>มุกดาหาร</option><option>แม่ฮ่องสอน</option>
+              <option>ยโสธร</option><option>ยะลา</option><option>ร้อยเอ็ด</option>
+              <option>ระนอง</option><option>ระยอง</option><option>ราชบุรี</option>
+              <option>ลพบุรี</option><option>ลำปาง</option><option>ลำพูน</option>
+              <option>เลย</option><option>สกลนคร</option><option>สงขลา</option>
+              <option>สตูล</option><option>สมุทรปราการ</option><option>สมุทรสงคราม</option>
+              <option>สมุทรสาคร</option><option>สระแก้ว</option><option>สระบุรี</option>
+              <option>สิงห์บุรี</option><option>สุโขทัย</option><option>สุพรรณบุรี</option>
+              <option>สุราษฎร์ธานี</option><option>สุรินทร์</option><option>หนองคาย</option>
+              <option>หนองบัวลำภู</option><option>อ่างทอง</option><option>อำนาจเจริญ</option>
+              <option>อุดรธานี</option><option>อุตรดิตถ์</option><option>อุทัยธานี</option>
+              <option>อุบลราชธานี</option>
+            </select>
+            <div class="err-msg" id="r-province-err">กรุณาเลือกจังหวัด</div>
+          </div>
+          <div class="fg">
+            <label class="fl" for="r-addr">ที่อยู่ <span style="color:#94a3b8;font-weight:400;">(ถ้ามี)</span></label>
+            <input type="text" id="r-addr" class="fi" placeholder="เลขที่ ถนน ตำบล อำเภอ">
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button class="btn btn-back" onclick="stepBack(2)" style="flex:0 0 80px;">← กลับ</button>
+            <button class="btn btn-primary" style="flex:1;margin-top:0;" onclick="stepNext(2)">ถัดไป →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="reg-step" id="reg-step3">
+          <div class="form-section">บัญชีผู้ใช้</div>
+          <div class="info-box">
+            ✅ สมัครสมาชิกสำเร็จแล้วสามารถใช้งานระบบได้ทันที ไม่ต้องรอการอนุมัติ
+          </div>
+          <div class="fg">
+            <label class="fl" for="r-email">อีเมล <span class="req">*</span></label>
+            <input type="email" id="r-email" class="fi" placeholder="example@email.com" autocomplete="email">
+            <div class="err-msg" id="r-email-err">กรุณากรอกอีเมลที่ถูกต้อง</div>
+          </div>
+          <div class="fg">
+            <label class="fl" for="r-pwd">รหัสผ่าน <span class="req">*</span></label>
+            <div class="pw-wrap">
+              <input type="password" id="r-pwd" class="fi" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password" oninput="checkStrength()">
+              <button class="pw-eye" onclick="togglePw('r-pwd',this)" type="button">👁️</button>
+            </div>
+            <div class="strength-bar"><div class="strength-fill" id="s-fill" style="width:0%"></div></div>
+            <div class="strength-label" id="s-label"></div>
+            <div class="err-msg" id="r-pwd-err">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</div>
+          </div>
+          <div class="fg">
+            <label class="fl" for="r-pwd2">ยืนยันรหัสผ่าน <span class="req">*</span></label>
+            <div class="pw-wrap">
+              <input type="password" id="r-pwd2" class="fi" placeholder="••••••••" autocomplete="new-password">
+              <button class="pw-eye" onclick="togglePw('r-pwd2',this)" type="button">👁️</button>
+            </div>
+            <div class="err-msg" id="r-pwd2-err">รหัสผ่านไม่ตรงกัน</div>
+          </div>
+          <div class="chk-row">
+            <input type="checkbox" id="r-agree">
+            <label for="r-agree">ฉันยินยอมให้ สสจ.ศรีสะเกษ เก็บข้อมูลเพื่อประกอบการดำเนินงานด้านสาธารณสุขตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)</label>
+          </div>
+          <div class="err-msg" id="r-agree-err">กรุณายินยอมเงื่อนไขการใช้งาน</div>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button class="btn btn-back" onclick="stepBack(3)" style="flex:0 0 80px;">← กลับ</button>
+            <button class="btn btn-primary" style="flex:1;margin-top:0;" id="regBtn" onclick="doRegister()">
+              ✅ สมัครสมาชิก
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-link">
+          มีบัญชีแล้ว? <a href="#" onclick="switchTab('login');return false;">เข้าสู่ระบบ</a>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        🔒 ข้อมูลถูกเข้ารหัสและจัดเก็บอย่างปลอดภัย · Smart Cosme v2.0<br>
+        สำนักงานสาธารณสุขจังหวัดศรีสะเกษ · มาตรฐาน ISO 8601 · PDPA พ.ศ. 2562
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   API CONFIG — ชี้ไปที่ Backend localhost
+   ============================================================ */
+const API = window.location.protocol === 'file:' ? 'http://localhost:3001' : '';
+
+function getToken()  { return localStorage.getItem('cosme_token'); }
+function setToken(t) { localStorage.setItem('cosme_token', t); }
+function clearToken(){ localStorage.removeItem('cosme_token'); localStorage.removeItem('cosme_session'); }
+
+async function apiFetch(path, opts = {}) {
+  const token = getToken();
+  try {
+    const res = await fetch(API + path, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      ...opts,
+    });
+    return { ok: res.ok, status: res.status, data: await res.json() };
+  } catch (e) {
+    return { ok: false, status: 0, data: { error: '❌ ไม่สามารถเชื่อมต่อ Server ได้ กรุณาตรวจสอบว่า Backend รันอยู่ที่ localhost:3000' } };
+  }
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function switchTab(tab){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  clearAlerts();
+}
+function clearAlerts(){
+  document.querySelectorAll('.alert').forEach(a=>{a.classList.remove('show');a.textContent='';});
+}
+
+/* ============================================================
+   PASSWORD
+   ============================================================ */
+function togglePw(id,btn){
+  const el=document.getElementById(id);
+  if(el.type==='password'){el.type='text';btn.textContent='🙈';}
+  else{el.type='password';btn.textContent='👁️';}
+}
+function checkStrength(){
+  const pwd=document.getElementById('r-pwd').value;
+  const fill=document.getElementById('s-fill'), label=document.getElementById('s-label');
+  if(!pwd){fill.style.width='0%';label.textContent='';return;}
+  let sc=0;
+  if(pwd.length>=6) sc++;
+  if(pwd.length>=10) sc++;
+  if(/[A-Z]/.test(pwd)) sc++;
+  if(/[0-9]/.test(pwd)) sc++;
+  if(/[^A-Za-z0-9]/.test(pwd)) sc++;
+  const lv=[
+    {p:'15%',c:'#ef4444',t:'อ่อนมาก'},{p:'35%',c:'#f97316',t:'อ่อน'},
+    {p:'55%',c:'#f59e0b',t:'ปานกลาง'},{p:'80%',c:'#22c55e',t:'แข็งแรง'},
+    {p:'100%',c:'#16a34a',t:'แข็งแรงมาก 💪'},
+  ];
+  const l=lv[Math.min(sc-1,4)]||lv[0];
+  fill.style.width=l.p; fill.style.background=l.c;
+  label.textContent=l.t; label.style.color=l.c;
+}
+
+/* ============================================================
+   STEP SYSTEM
+   ============================================================ */
+function setStepUI(n){
+  for(let i=1;i<=3;i++){
+    document.getElementById('reg-step'+i).classList.toggle('active',i===n);
+    const dot=document.getElementById('sd'+i);
+    dot.className='step-dot'+(i<n?' done':i===n?' active':'');
+    dot.textContent=i<n?'✓':String(i);
+    if(i<3) document.getElementById('sl'+i).className='step-line'+(i<n?' done':'');
+  }
+  clearAlerts();
+}
+function stepNext(from){
+  if(from===1){
+    const fname=document.getElementById('r-fname').value.trim();
+    const lname=document.getElementById('r-lname').value.trim();
+    const phone=document.getElementById('r-phone').value.trim();
+    const idcard=document.getElementById('r-idcard').value.trim();
+    if(!fname||!lname){showErr('reg-err','กรุณากรอกชื่อและนามสกุล');return;}
+    if(!phone||phone.length<9){showErrEl('r-phone','r-phone-err');return;}
+    if(idcard&&idcard.length!==13){showErrEl('r-idcard','r-idcard-err');return;}
+    setStepUI(2);
+  } else if(from===2){
+    const biz=document.getElementById('r-biz').value.trim();
+    const bt=document.getElementById('r-biztype').value;
+    const pv=document.getElementById('r-province').value;
+    if(!biz){showErr('reg-err','กรุณากรอกชื่อกิจการ');return;}
+    if(!bt){showErrEl('r-biztype','r-biztype-err');return;}
+    if(!pv){showErrEl('r-province','r-province-err');return;}
+    setStepUI(3);
+  }
+}
+function stepBack(from){ setStepUI(from-1); }
+
+function showErr(boxId,msg){
+  const b=document.getElementById(boxId);
+  b.textContent='⚠️ '+msg; b.classList.add('show');
+}
+function showErrEl(inputId,errId){
+  document.getElementById(inputId).classList.add('err');
+  document.getElementById(errId).classList.add('show');
+  setTimeout(()=>{
+    document.getElementById(inputId).classList.remove('err');
+    document.getElementById(errId).classList.remove('show');
+  },3000);
+}
+
+/* ============================================================
+   LOGIN — เรียก API จริง
+   ============================================================ */
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim().toLowerCase();
+  const pwd=document.getElementById('l-pwd').value;
+  const remember=document.getElementById('remember').checked;
+  clearAlerts();
+  if(!email||!email.includes('@')){showErrEl('l-email','l-email-err');return;}
+  if(!pwd){showErrEl('l-pwd','l-pwd-err');return;}
+
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span> กำลังตรวจสอบ...';
+
+  const { ok, data } = await apiFetch('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password: pwd }),
+  });
+
+  if (!ok) {
+    showErr('login-err', data.error || 'เกิดข้อผิดพลาด');
+    btn.disabled=false; btn.innerHTML='🔑 เข้าสู่ระบบ';
+    return;
+  }
+
+  // บันทึก Token + Session
+  setToken(data.token);
+  localStorage.setItem('cosme_session', JSON.stringify({
+    ...data.user, loginAt: new Date().toISOString()
+  }));
+
+  if(remember){
+    localStorage.setItem('cosme_remember', JSON.stringify({ email }));
+  } else {
+    localStorage.removeItem('cosme_remember');
+  }
+
+  const ok2=document.getElementById('login-ok');
+  ok2.textContent=`✅ ยินดีต้อนรับ คุณ${data.user.firstName} ${data.user.lastName}! กำลังเข้าสู่ระบบ...`;
+  ok2.classList.add('show');
+
+  setTimeout(()=>{ window.location.href='index.html'; }, 800);
+}
+
+/* ============================================================
+   REGISTER — ส่งข้อมูลไปเก็บใน Database จริง
+   ============================================================ */
+async function doRegister(){
+  const email=document.getElementById('r-email').value.trim().toLowerCase();
+  const pwd=document.getElementById('r-pwd').value;
+  const pwd2=document.getElementById('r-pwd2').value;
+  const agree=document.getElementById('r-agree').checked;
+  clearAlerts();
+
+  if(!email||!email.includes('@')){showErrEl('r-email','r-email-err');return;}
+  if(!pwd||pwd.length<6){showErrEl('r-pwd','r-pwd-err');return;}
+  if(pwd!==pwd2){showErrEl('r-pwd2','r-pwd2-err');return;}
+  if(!agree){
+    document.getElementById('r-agree-err').classList.add('show');
+    setTimeout(()=>document.getElementById('r-agree-err').classList.remove('show'),3000);
+    return;
+  }
+
+  const btn=document.getElementById('regBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span> กำลังบันทึกข้อมูล...';
+
+  const { ok, data } = await apiFetch('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      email,
+      password: pwd,
+      firstName:    document.getElementById('r-fname').value.trim(),
+      lastName:     document.getElementById('r-lname').value.trim(),
+      businessName: document.getElementById('r-biz').value.trim(),
+      businessType: document.getElementById('r-biztype').value,
+      idCard:       document.getElementById('r-idcard').value.trim() || null,
+      phone:        document.getElementById('r-phone').value.trim(),
+      address:      document.getElementById('r-addr').value.trim() || null,
+      province:     document.getElementById('r-province').value,
+    }),
+  });
+
+  btn.disabled=false;
+  btn.innerHTML='✅ สมัครสมาชิก';
+
+  if (!ok) {
+    showErr('reg-err', data.error || 'เกิดข้อผิดพลาด');
+    return;
+  }
+
+  // บันทึก Token + Session แล้วเข้าระบบเลย
+  setToken(data.token);
+  localStorage.setItem('cosme_session', JSON.stringify({
+    ...data.user, loginAt: new Date().toISOString()
+  }));
+
+  const okEl=document.getElementById('reg-ok');
+  okEl.innerHTML=`✅ <strong>สมัครสมาชิกสำเร็จ!</strong> คุณ${data.user.firstName} ${data.user.lastName}<br>
+    ข้อมูลถูกบันทึกลงฐานข้อมูลแล้ว 🗄️ กำลังเข้าสู่ระบบ...`;
+  okEl.classList.add('show');
+
+  setTimeout(()=>{ window.location.href='index.html'; }, 1500);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', async () => {
+  // ตรวจสอบว่า Backend พร้อมไหม
+  const { ok } = await apiFetch('/api/health');
+  if (!ok) {
+    const warn = document.createElement('div');
+    warn.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#fef3c7;color:#92400e;text-align:center;padding:10px 16px;font-size:0.82rem;z-index:9999;border-bottom:2px solid #f59e0b;';
+    warn.innerHTML = '⚠️ <strong>Backend ยังไม่เปิด!</strong> กรุณารัน <code>cd server && node server.js</code> ก่อนใช้งาน';
+    document.body.prepend(warn);
+  }
+
+  // ถ้า Login อยู่แล้ว ส่งต่อไป index.html
+  const token = getToken();
+  if (token) {
+    const { ok: authOk } = await apiFetch('/api/auth/me');
+    if (authOk) { window.location.href = 'index.html'; return; }
+    clearToken();
+  }
+
+  // Remember me
+  const rem = localStorage.getItem('cosme_remember');
+  if (rem) {
+    try {
+      const r = JSON.parse(rem);
+      document.getElementById('l-email').value = r.email;
+      document.getElementById('remember').checked = true;
+    } catch(e){}
+  }
+
+  // Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const active = document.querySelector('.tab-panel.active').id;
+      if (active === 'panel-login') doLogin();
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+server/node_modules/
+server/.env
+server/data/cosme.db
+server/data/cosme.db-journal
+*.log

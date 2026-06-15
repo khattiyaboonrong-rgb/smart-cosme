@@ -1,0 +1,83 @@
+// This is your Prisma schema file
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// ตาราง Users — ผู้ประกอบการ
+// =============================================
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  firstName    String
+  lastName     String
+  businessName String
+  businessType String
+  idCard       String?
+  phone        String
+  address      String?
+  province     String
+  passwordHash String
+  status       String     @default("approved")  // approved | rejected
+  role         String     @default("user")       // user | admin
+  adminNote    String?    @default("")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  lastLogin    DateTime?
+  deletedAt    DateTime?  // Soft Delete — ไม่ลบจริง
+
+  activities Activity[]
+  feedback   Feedback[]
+}
+
+// =============================================
+// ตาราง Activities — ประวัติการใช้งาน
+// =============================================
+model Activity {
+  id           String   @id @default(uuid())
+  userId       String?
+  action       String   // login | logout | register | label_created | ocr_check
+  email        String?
+  businessName String?
+  detail       String?
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+// =============================================
+// ตาราง Feedback — ความพึงพอใจ
+// =============================================
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String?
+  name      String?
+  contact   String?
+  product   String?
+  rating    Int?
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+// =============================================
+// ตาราง Labels — ฉลากที่สร้าง
+// =============================================
+model Label {
+  id           String   @id @default(uuid())
+  userId       String?
+  productName  String
+  productType  String?
+  manufacturer String?
+  score        Int?
+  hasBanned    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}

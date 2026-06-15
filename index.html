@@ -1,0 +1,2409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Cosme — ระบบออกแบบและตรวจสอบฉลากเครื่องสำอาง</title>
+<meta name="description" content="ระบบออกแบบและตรวจสอบฉลากเครื่องสำอางอัตโนมัติ ตาม พ.ร.บ. เครื่องสำอาง พ.ศ. 2558 สำนักงานสาธารณสุขจังหวัดศรีสะเกษ">
+
+<!-- Auth Guard — redirect to login if no session -->
+<script>
+(async function(){
+  const token = localStorage.getItem('cosme_token');
+  if (!token) { window.location.replace('login.html'); return; }
+  try {
+    const res = await fetch((window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + '/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) throw new Error('Invalid token');
+    const data = await res.json();
+    window.currentUser = data.user;
+  } catch(e) {
+    localStorage.removeItem('cosme_token');
+    localStorage.removeItem('cosme_session');
+    window.location.replace('login.html');
+  }
+})();
+</script>
+
+<!-- External Libraries -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ================================================
+   DESIGN TOKENS
+   ================================================ */
+:root {
+  --navy-900: #e8f3ff;
+  --navy-800: #ffffff;
+  --navy-700: #f0f6ff;
+  --navy-600: #dbeafe;
+  --navy-500: #93c5fd;
+  --blue-600: #2563eb;
+  --blue-500: #3b82f6;
+  --blue-400: #60a5fa;
+  --blue-300: #93c5fd;
+  --blue-200: #bfdbfe;
+  --blue-100: #dbeafe;
+  --gold-500: #f59e0b;
+  --gold-400: #fbbf24;
+  --gold-200: #fde68a;
+  --gold-100: #fef3c7;
+  --green-600: #16a34a;
+  --green-500: #22c55e;
+  --green-100: #dcfce7;
+  --red-600: #dc2626;
+  --red-500: #ef4444;
+  --red-100: #fee2e2;
+  --orange-500: #f97316;
+  --orange-100: #ffedd5;
+  --purple-500: #8b5cf6;
+  --purple-100: #ede9fe;
+  --teal-500: #14b8a6;
+  --teal-100: #ccfbf1;
+  --white: #0f172a;
+  --pure-white: #ffffff;
+  --glass-bg: rgba(255,255,255,0.7);
+  --glass-border: rgba(37,99,235,0.18);
+  --glass-shadow: 0 4px 32px rgba(37,99,235,0.13);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ================================================
+   RESET & BASE
+   ================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Prompt', 'Inter', sans-serif;
+  background: linear-gradient(150deg, #dbeafe 0%, #eff6ff 50%, #e0f2fe 100%);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated background blobs */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+body::before {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(96,165,250,0.25) 0%, transparent 70%);
+  top: -200px; left: -200px;
+  animation: blobMove1 12s ease-in-out infinite alternate;
+}
+body::after {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(251,191,36,0.15) 0%, transparent 70%);
+  bottom: -200px; right: -150px;
+  animation: blobMove2 15s ease-in-out infinite alternate;
+}
+@keyframes blobMove1 { to { transform: translate(80px, 60px) scale(1.1); } }
+@keyframes blobMove2 { to { transform: translate(-60px, -40px) scale(0.9); } }
+
+/* ================================================
+   USER INFO BAR
+   ================================================ */
+#user-bar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(15,23,42,0.08);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ubar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ubar-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-600), var(--gold-500));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.9rem; color: var(--white);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(96,165,250,0.3);
+}
+.ubar-info { display: flex; flex-direction: column; }
+.ubar-name { font-size: 0.86rem; font-weight: 700; color: var(--white); line-height: 1.2; }
+.ubar-biz  { font-size: 0.73rem; color: rgba(15,23,42,0.4); }
+.ubar-right { display: flex; align-items: center; gap: 8px; }
+.ubar-badge {
+  font-size: 0.72rem; font-weight: 600;
+  background: rgba(37,99,235,0.2); color: var(--blue-300);
+  border: 1px solid rgba(96,165,250,0.2);
+  border-radius: 99px; padding: 3px 10px;
+}
+.ubar-logout {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 14px;
+  background: rgba(220,38,38,0.1); color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 8px; font-family: 'Prompt', sans-serif;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: var(--transition);
+}
+.ubar-logout:hover { background: rgba(220,38,38,0.2); }
+.ubar-admin-link {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 14px;
+  background: rgba(245,158,11,0.1); color: var(--gold-400);
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 8px; font-family: 'Prompt', sans-serif;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: var(--transition); text-decoration: none;
+}
+.ubar-admin-link:hover { background: rgba(245,158,11,0.2); }
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ================================================
+   GLASSMORPHISM CARD
+   ================================================ */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: 28px 24px;
+  margin-bottom: 20px;
+  transition: var(--transition);
+}
+.glass-card:hover {
+  border-color: rgba(255,255,255,0.8);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+}
+
+/* ================================================
+   HEADER
+   ================================================ */
+.header {
+  text-align: center;
+  padding: 40px 24px 32px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  box-shadow: 0 10px 30px rgba(30,58,138,0.2);
+  border: 1px solid rgba(96,165,250,0.2);
+  border-radius: var(--radius-xl);
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #f59e0b, #60a5fa, #f59e0b, #2563eb);
+  background-size: 400% 100%;
+  animation: gradientSlide 4s linear infinite;
+}
+@keyframes gradientSlide { 0%{background-position:0 0} 100%{background-position:400% 0} }
+
+.logo-text {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  background: linear-gradient(90deg, #60a5fa, #f59e0b, #60a5fa);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textShimmer 3s linear infinite;
+  display: block;
+  margin-bottom: 6px;
+}
+@keyframes textShimmer { 0%{background-position:0 0} 100%{background-position:200% 0} }
+
+.header-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 4px;
+}
+.header-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 14px;
+}
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(96,165,250,0.3);
+  border-radius: 99px;
+  padding: 6px 18px;
+  font-size: 0.78rem;
+  color: var(--blue-300);
+  font-weight: 500;
+}
+
+/* ================================================
+   TABS / NAV
+   ================================================ */
+.tab-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 6px;
+  background: rgba(255,255,255,0.5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  flex: 1;
+  min-width: 110px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: rgba(15,23,42,0.5);
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tab-btn:hover { color: rgba(15,23,42,0.8); background: rgba(255,255,255,0.5); }
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--blue-600), #1d4ed8);
+  color: var(--white);
+  box-shadow: 0 4px 15px rgba(37,99,235,0.4);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ================================================
+   SECTION TITLE
+   ================================================ */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.section-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, rgba(37,99,235,0.3), rgba(96,165,250,0.1));
+  border: 1px solid rgba(96,165,250,0.3);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.section-title h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
+}
+.section-title p {
+  font-size: 0.75rem;
+  color: rgba(15,23,42,0.4);
+  margin-top: 1px;
+}
+
+/* ================================================
+   FORM ELEMENTS
+   ================================================ */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-full { grid-column: 1 / -1; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(15,23,42,0.6);
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.form-label .required { color: var(--gold-400); }
+
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(15,23,42,0.06);
+  border: 1px solid rgba(15,23,42,0.12);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.87rem;
+  transition: var(--transition);
+  outline: none;
+}
+.form-input::placeholder, .form-textarea::placeholder { color: rgba(15,23,42,0.25); }
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--blue-400);
+  background: rgba(37,99,235,0.12);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+.form-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2393c5fd' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+.form-select option { background: var(--navy-800); color: var(--white); }
+
+.char-count { font-size: 0.72rem; color: rgba(15,23,42,0.3); text-align: right; margin-top: -2px; }
+
+/* ================================================
+   BUTTONS
+   ================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(15,23,42,0);
+  transition: var(--transition);
+}
+.btn:hover::after { background: rgba(15,23,42,0.08); }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--blue-600), #1d4ed8);
+  color: var(--white);
+  box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+  width: 100%;
+  margin-bottom: 10px;
+}
+.btn-primary:hover { box-shadow: 0 6px 28px rgba(37,99,235,0.5); transform: translateY(-1px); }
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-500), #d97706);
+  color: var(--navy-900);
+  box-shadow: 0 4px 20px rgba(245,158,11,0.35);
+  width: 100%;
+  margin-bottom: 10px;
+}
+.btn-gold:hover { box-shadow: 0 6px 28px rgba(245,158,11,0.5); transform: translateY(-1px); }
+
+.btn-success {
+  background: linear-gradient(135deg, var(--green-600), #15803d);
+  color: var(--white);
+  box-shadow: 0 4px 20px rgba(22,163,74,0.35);
+  width: 100%;
+}
+.btn-success:hover { box-shadow: 0 6px 28px rgba(22,163,74,0.5); transform: translateY(-1px); }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(15,23,42,0.15);
+  color: rgba(15,23,42,0.7);
+}
+.btn-outline:hover { border-color: var(--blue-400); color: var(--blue-400); }
+
+.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.btn-group .btn { width: 100%; margin-bottom: 0; }
+
+/* ================================================
+   DIVIDER
+   ================================================ */
+.divider {
+  border: none;
+  border-top: 1px solid rgba(15,23,42,0.08);
+  margin: 20px 0;
+}
+
+/* ================================================
+   TEMPLATE SELECTOR
+   ================================================ */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.template-card {
+  background: rgba(255,255,255,0.5);
+  border: 1px solid rgba(15,23,42,0.1);
+  border-radius: var(--radius-sm);
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.8rem;
+  color: rgba(15,23,42,0.6);
+}
+.template-card:hover, .template-card.selected {
+  border-color: var(--blue-400);
+  background: rgba(37,99,235,0.12);
+  color: var(--blue-300);
+  transform: translateY(-2px);
+}
+.template-card .t-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.template-card .t-name { font-weight: 600; font-size: 0.78rem; }
+
+/* ================================================
+   LABEL PREVIEW
+   ================================================ */
+#label-preview-wrapper {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  box-shadow: 0 0 0 1px rgba(96,165,250,0.3), 0 8px 32px rgba(0,0,0,0.4);
+}
+#label-preview {
+  background: var(--white);
+  color: #1e293b;
+  border-radius: calc(var(--radius-md) - 2px);
+  padding: 24px 22px;
+  font-family: 'Prompt', sans-serif;
+  min-height: 80px;
+  line-height: 1.85;
+  font-size: 0.88rem;
+}
+#label-preview .lbl-product-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e3a5f;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #2563eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#label-preview .lbl-type {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+  background: #dbeafe;
+  padding: 2px 10px;
+  border-radius: 99px;
+}
+#label-preview .lbl-row { margin-bottom: 3px; }
+#label-preview .lbl-key { font-weight: 700; color: #2563eb; }
+#label-preview .lbl-warn {
+  margin-top: 12px;
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: #78350f;
+}
+#label-preview .lbl-footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: right;
+}
+.label-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: rgba(100,116,139,0.6);
+  gap: 10px;
+}
+.label-placeholder .ph-icon { font-size: 2.5rem; opacity: 0.4; }
+.label-placeholder p { font-size: 0.85rem; }
+
+/* ================================================
+   ANALYSIS ITEMS
+   ================================================ */
+.analysis-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.analysis-item {
+  display: flex;
+  gap: 12px;
+  padding: 13px 15px;
+  border-radius: var(--radius-sm);
+  align-items: flex-start;
+  animation: slideInUp 0.3s ease forwards;
+  opacity: 0;
+}
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.analysis-item:nth-child(1) { animation-delay: 0.05s; }
+.analysis-item:nth-child(2) { animation-delay: 0.10s; }
+.analysis-item:nth-child(3) { animation-delay: 0.15s; }
+.analysis-item:nth-child(4) { animation-delay: 0.20s; }
+.analysis-item:nth-child(5) { animation-delay: 0.25s; }
+.analysis-item:nth-child(6) { animation-delay: 0.30s; }
+.analysis-item:nth-child(7) { animation-delay: 0.35s; }
+.analysis-item:nth-child(8) { animation-delay: 0.40s; }
+.analysis-item:nth-child(9) { animation-delay: 0.45s; }
+
+.analysis-item.pass { background: rgba(22,163,74,0.1); border: 1px solid rgba(34,197,94,0.2); }
+.analysis-item.fail { background: rgba(220,38,38,0.1); border: 1px solid rgba(239,68,68,0.2); }
+.analysis-item.warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(251,191,36,0.2); }
+
+.analysis-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+.analysis-content { flex: 1; }
+.analysis-label { font-size: 0.82rem; font-weight: 700; margin-bottom: 2px; }
+.analysis-item.pass .analysis-label { color: var(--green-500); }
+.analysis-item.fail .analysis-label { color: var(--red-500); }
+.analysis-item.warn .analysis-label { color: var(--gold-400); }
+.analysis-detail { font-size: 0.8rem; color: rgba(15,23,42,0.6); line-height: 1.5; }
+
+/* ================================================
+   SCORE GAUGE
+   ================================================ */
+.score-container {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 22px;
+  background: rgba(15,23,42,0.04);
+  border: 1px solid rgba(15,23,42,0.1);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+.score-gauge {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+.score-gauge svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+.score-gauge circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+.gauge-bg { stroke: rgba(15,23,42,0.08); }
+.gauge-fill { stroke: var(--blue-500); transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1); }
+.score-num {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--white);
+}
+.score-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+.score-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.verdict-pass { background: rgba(22,163,74,0.15); color: var(--green-500); border: 1px solid rgba(34,197,94,0.2); }
+.verdict-fail { background: rgba(220,38,38,0.15); color: var(--red-500); border: 1px solid rgba(239,68,68,0.2); }
+.verdict-warn { background: rgba(245,158,11,0.15); color: var(--gold-400); border: 1px solid rgba(251,191,36,0.2); }
+.score-desc { font-size: 0.78rem; color: rgba(15,23,42,0.45); }
+
+/* ================================================
+   BANNED WORDS WARNING
+   ================================================ */
+.banned-alert {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  line-height: 1.6;
+  margin-top: 12px;
+  animation: slideInUp 0.3s ease forwards;
+}
+.banned-pass { background: rgba(22,163,74,0.1); border: 1px solid rgba(34,197,94,0.25); color: var(--green-500); }
+.banned-fail { background: rgba(220,38,38,0.1); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
+.banned-section { margin-top: 8px; color: rgba(15,23,42,0.7); }
+.banned-section strong { color: var(--red-500); }
+.banned-word-tag {
+  display: inline-block;
+  background: rgba(220,38,38,0.2);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-size: 0.78rem;
+  color: #fca5a5;
+  margin: 2px 3px;
+}
+
+/* ================================================
+   RESULT BOX (generic)
+   ================================================ */
+.result-box {
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 0.86rem;
+  line-height: 1.7;
+  margin-top: 12px;
+  animation: slideInUp 0.3s ease;
+}
+.result-pass { background: rgba(22,163,74,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
+.result-fail { background: rgba(220,38,38,0.1); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
+.result-warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(251,191,36,0.25); color: var(--gold-200); }
+.result-info { background: rgba(37,99,235,0.1); border: 1px solid rgba(96,165,250,0.25); color: var(--blue-200); }
+
+/* ================================================
+   OCR / IMAGE UPLOAD
+   ================================================ */
+.upload-zone {
+  border: 2px dashed rgba(96,165,250,0.35);
+  border-radius: var(--radius-md);
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  background: rgba(37,99,235,0.04);
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone:hover {
+  border-color: var(--blue-400);
+  background: rgba(37,99,235,0.1);
+}
+.upload-zone input[type="file"] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer;
+  width: 100%; height: 100%;
+}
+.upload-icon-big { font-size: 2.8rem; margin-bottom: 10px; }
+.upload-text-main { font-weight: 600; color: var(--blue-300); margin-bottom: 4px; }
+.upload-text-sub { font-size: 0.78rem; color: rgba(15,23,42,0.35); }
+
+#preview-img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+  display: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  border: 1px solid rgba(15,23,42,0.1);
+}
+
+/* ================================================
+   PROGRESS
+   ================================================ */
+.progress-wrap { margin-top: 16px; }
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: rgba(15,23,42,0.5);
+  margin-bottom: 8px;
+}
+.progress-bar {
+  height: 6px;
+  background: rgba(15,23,42,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue-600), var(--blue-400), var(--gold-400));
+  background-size: 200% 100%;
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  animation: progressGlow 2s linear infinite;
+}
+@keyframes progressGlow { 0%{background-position:0 0} 100%{background-position:200% 0} }
+
+/* ================================================
+   STEP INDICATOR
+   ================================================ */
+.steps-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.83rem;
+  color: rgba(15,23,42,0.4);
+  transition: var(--transition);
+}
+.step-item.active { color: rgba(15,23,42,0.9); }
+.step-item.done { color: var(--green-500); }
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: var(--transition);
+  background: rgba(15,23,42,0.07);
+  border: 1px solid rgba(15,23,42,0.1);
+  color: rgba(15,23,42,0.3);
+}
+.step-item.active .step-num {
+  background: var(--blue-600);
+  border-color: var(--blue-400);
+  color: var(--white);
+  box-shadow: 0 0 12px rgba(37,99,235,0.5);
+}
+.step-item.done .step-num {
+  background: var(--green-600);
+  border-color: var(--green-500);
+  color: var(--white);
+}
+
+/* ================================================
+   OCR TEXT BOX
+   ================================================ */
+.ocr-box {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(15,23,42,0.1);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  color: rgba(15,23,42,0.55);
+  max-height: 150px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+/* ================================================
+   BANNED WORDS REFERENCE SECTION
+   ================================================ */
+.law-section {
+  margin-bottom: 6px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid rgba(15,23,42,0.08);
+}
+.law-section summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  background: rgba(15,23,42,0.04);
+  transition: var(--transition);
+  list-style: none;
+}
+.law-section summary::-webkit-details-marker { display: none; }
+.law-section summary:hover { background: rgba(15,23,42,0.07); }
+.law-section[open] summary { background: rgba(15,23,42,0.06); }
+.law-section summary::after {
+  content: '▾';
+  margin-left: auto;
+  transition: var(--transition);
+  color: rgba(15,23,42,0.3);
+}
+.law-section[open] summary::after { transform: rotate(180deg); }
+.law-section .law-content { padding: 12px 16px 16px; }
+.law-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.law-tag {
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.lt-red    { background: rgba(220,38,38,0.15);   color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+.lt-orange { background: rgba(245,158,11,0.15);  color: var(--gold-200); border: 1px solid rgba(251,191,36,0.25); }
+.lt-purple { background: rgba(139,92,246,0.15);  color: #c4b5fd; border: 1px solid rgba(139,92,246,0.25); }
+.lt-teal   { background: rgba(20,184,166,0.15);  color: #5eead4; border: 1px solid rgba(20,184,166,0.25); }
+
+/* ================================================
+   FEEDBACK / STARS
+   ================================================ */
+.stars-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.star-btn {
+  font-size: 1.9rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+  filter: grayscale(1) opacity(0.4);
+  line-height: 1;
+}
+.star-btn.active { filter: none; transform: scale(1.08); }
+.star-btn:hover { transform: scale(1.18); }
+.rating-label { font-size: 0.8rem; color: rgba(15,23,42,0.4); min-height: 18px; }
+
+/* ================================================
+   HISTORY
+   ================================================ */
+.history-empty {
+  text-align: center;
+  padding: 30px;
+  color: rgba(15,23,42,0.25);
+  font-size: 0.85rem;
+}
+.history-item {
+  padding: 14px 16px;
+  background: rgba(15,23,42,0.04);
+  border: 1px solid rgba(15,23,42,0.08);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.history-item:hover { background: rgba(15,23,42,0.07); border-color: rgba(96,165,250,0.2); }
+.history-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.history-item-name { font-weight: 600; font-size: 0.87rem; color: var(--white); }
+.history-item-date { font-size: 0.72rem; color: rgba(15,23,42,0.35); }
+.history-item-meta { font-size: 0.78rem; color: rgba(15,23,42,0.45); }
+.history-score {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.hs-good { background: rgba(22,163,74,0.15); color: var(--green-500); }
+.hs-warn { background: rgba(245,158,11,0.15); color: var(--gold-400); }
+.hs-bad  { background: rgba(220,38,38,0.15); color: var(--red-500); }
+
+/* ================================================
+   SPINNER
+   ================================================ */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(15,23,42,0.2);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ================================================
+   TOAST NOTIFICATION
+   ================================================ */
+#toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: rgba(15,23,42,0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(15,23,42,0.12);
+  border-radius: var(--radius-sm);
+  padding: 12px 22px;
+  font-size: 0.85rem;
+  color: var(--white);
+  z-index: 9999;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ================================================
+   LAW FOOTER
+   ================================================ */
+.law-footer {
+  font-size: 0.73rem;
+  color: rgba(15,23,42,0.25);
+  background: rgba(15,23,42,0.03);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media (max-width: 580px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-full { grid-column: 1; }
+  .btn-group { grid-template-columns: 1fr; }
+  .logo-text { font-size: 2.2rem; }
+  .score-container { flex-direction: column; text-align: center; }
+  .tab-btn { min-width: 85px; font-size: 0.75rem; padding: 9px 10px; }
+  body { padding: 0; }
+  .container { padding: 12px 10px 50px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ====== USER INFO BAR ====== -->
+<div id="user-bar">
+  <div class="ubar-left">
+    <div class="ubar-avatar" id="ubar-avatar">U</div>
+    <div class="ubar-info">
+      <div class="ubar-name" id="ubar-name">กำลังโหลด...</div>
+      <div class="ubar-biz" id="ubar-biz">ระบบออกแบบฉลากเครื่องสำอาง</div>
+    </div>
+  </div>
+  <div class="ubar-right">
+    <span class="ubar-badge" id="ubar-province">สสจ.ศรีสะเกษ</span>
+    <a class="ubar-admin-link" id="ubar-admin-link" href="admin.html" style="display:none;">⚙️ Admin</a>
+    <button class="ubar-logout" onclick="doLogout()">🚪 ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ================================================ HEADER ================================================ -->
+  <div class="header glass-card" style="padding: 40px 24px 32px; margin-bottom: 24px; border-radius: var(--radius-xl);">
+    <span class="logo-text">Smart Cosme</span>
+    <h1 class="header-title">🏷️ ระบบออกแบบและตรวจสอบฉลากเครื่องสำอาง</h1>
+    <div class="header-subtitle">สำนักงานสาธารณสุขจังหวัดศรีสะเกษ</div>
+    <span class="header-badge">⚡ Smart Rule-Based AI &nbsp;|&nbsp; Tesseract OCR &nbsp;|&nbsp; พ.ร.บ. เครื่องสำอาง พ.ศ. 2558</span>
+  </div>
+
+  <!-- ================================================ TAB NAV ================================================ -->
+  <nav class="tab-nav" role="tablist" aria-label="เมนูหลัก">
+    <button class="tab-btn active" id="tab-design" onclick="switchTab('design')" role="tab" aria-selected="true" aria-controls="panel-design">📝 ออกแบบฉลาก</button>
+    <button class="tab-btn" id="tab-check" onclick="switchTab('check')" role="tab" aria-selected="false" aria-controls="panel-check">🔍 ตรวจจากรูป</button>
+    <button class="tab-btn" id="tab-law" onclick="switchTab('law')" role="tab" aria-selected="false" aria-controls="panel-law">⚖️ คำต้องห้าม</button>
+    <button class="tab-btn" id="tab-history" onclick="switchTab('history')" role="tab" aria-selected="false" aria-controls="panel-history">📋 ประวัติ</button>
+    <button class="tab-btn" id="tab-feedback" onclick="switchTab('feedback')" role="tab" aria-selected="false" aria-controls="panel-feedback">⭐ ความพึงพอใจ</button>
+  </nav>
+
+  <!-- ================================================ TAB: DESIGN ================================================ -->
+  <div class="tab-panel active" id="panel-design" role="tabpanel" aria-labelledby="tab-design">
+
+    <!-- Template selector -->
+    <div class="glass-card">
+      <div class="section-title">
+        <div class="section-icon">📐</div>
+        <div><h2>เลือก Template</h2><p>เลือกประเภทสินค้าเพื่อเติมข้อมูลอัตโนมัติ</p></div>
+      </div>
+      <div class="template-grid" id="template-grid">
+        <div class="template-card" onclick="applyTemplate('cream')"><div class="t-icon">🧴</div><div class="t-name">ครีม</div></div>
+        <div class="template-card" onclick="applyTemplate('serum')"><div class="t-icon">💧</div><div class="t-name">เซรั่ม</div></div>
+        <div class="template-card" onclick="applyTemplate('lotion')"><div class="t-icon">🥛</div><div class="t-name">โลชั่น</div></div>
+        <div class="template-card" onclick="applyTemplate('shampoo')"><div class="t-icon">🧴</div><div class="t-name">แชมพู</div></div>
+        <div class="template-card" onclick="applyTemplate('sunscreen')"><div class="t-icon">☀️</div><div class="t-name">กันแดด</div></div>
+        <div class="template-card" onclick="applyTemplate('lip')"><div class="t-icon">💄</div><div class="t-name">ลิปสติก</div></div>
+        <div class="template-card" onclick="applyTemplate('soap')"><div class="t-icon">🧼</div><div class="t-name">สบู่</div></div>
+        <div class="template-card" onclick="applyTemplate('blank')"><div class="t-icon">✏️</div><div class="t-name">กรอกเอง</div></div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="glass-card">
+      <div class="section-title">
+        <div class="section-icon">📝</div>
+        <div><h2>ข้อมูลฉลาก</h2><p>กรอกข้อมูลให้ครบถ้วนตามข้อกำหนดของ อย.</p></div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="name">ชื่อผลิตภัณฑ์ <span class="required">*</span></label>
+          <input type="text" id="name" class="form-input" placeholder="เช่น ครีมบำรุงผิวหน้า Glow+" oninput="autoPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="type">ประเภทสินค้า <span class="required">*</span></label>
+          <select id="type" class="form-select" onchange="toggleOtherType(this); autoPreview()">
+            <option value="">-- เลือกประเภท --</option>
+            <option>ครีม</option>
+            <option>เซรั่ม</option>
+            <option>โลชั่น</option>
+            <option>แชมพู</option>
+            <option>ครีมนวดผม</option>
+            <option>ครีมกันแดด</option>
+            <option>ลิปสติก</option>
+            <option>แป้ง</option>
+            <option>สบู่</option>
+            <option>เจล</option>
+            <option value="อื่นๆ">อื่นๆ โปรดระบุ</option>
+          </select>
+        </div>
+        <input type="text" id="typeOther" class="form-input form-full" placeholder="ระบุประเภทสินค้า เช่น สบู่สมุนไพร, ทินเนอร์..." style="display:none;" oninput="autoPreview()">
+      </div>
+
+      <div class="form-group" style="margin-top:14px;">
+        <label class="form-label" for="ing">ส่วนประกอบ <span class="required">*</span></label>
+        <textarea id="ing" class="form-textarea" placeholder="เช่น Water, Glycerin, Niacinamide 5%, Hyaluronic Acid, Vitamin C..." oninput="countChars('ing','ing-count'); autoPreview()" rows="3"></textarea>
+        <div class="char-count" id="ing-count">0 ตัวอักษร</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="usage">วิธีใช้ <span class="required">*</span></label>
+        <textarea id="usage" class="form-textarea" placeholder="เช่น ทาบางๆ บนผิวหน้าที่ทำความสะอาดแล้ว เช้า-เย็น..." oninput="autoPreview()" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="manufacturer">ผู้ผลิต / ผู้จำหน่าย <span class="required">*</span></label>
+        <textarea id="manufacturer" class="form-textarea" placeholder="ชื่อบริษัท / ที่อยู่ / เบอร์โทรศัพท์..." oninput="autoPreview()" rows="2"></textarea>
+      </div>
+
+      <div class="form-grid" style="margin-top:0;">
+        <div class="form-group">
+          <label class="form-label" for="weight">ปริมาณสุทธิ</label>
+          <input type="text" id="weight" class="form-input" placeholder="เช่น 50 g / 150 ml" oninput="autoPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lot">ครั้งที่ผลิต (Lot)</label>
+          <input type="text" id="lot" class="form-input" placeholder="เช่น LOT2025001" oninput="autoPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mfg">วันที่ผลิต</label>
+          <input type="date" id="mfg" class="form-input" oninput="autoPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="exp">วันที่หมดอายุ</label>
+          <input type="date" id="exp" class="form-input" oninput="autoPreview()">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:14px;">
+        <label class="form-label" for="notify">เลขที่ใบรับจดแจ้ง</label>
+        <input type="text" id="notify" class="form-input" placeholder="เช่น 10-1-6200000 (ขอได้ที่ อย. หรือ สสจ.)" oninput="autoPreview()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="claim">ข้อความโฆษณา / คำเตือน / ข้อห้ามใช้</label>
+        <textarea id="claim" class="form-textarea" placeholder="เช่น หากเกิดการระคายเคืองให้หยุดใช้ทันที และปรึกษาแพทย์..." oninput="checkClaimsRealtime(); countChars('claim','claim-count'); autoPreview()" rows="3"></textarea>
+        <div class="char-count" id="claim-count">0 ตัวอักษร</div>
+        <div style="font-size:0.75rem;color:rgba(15,23,42,0.3);margin-top:4px;">⚠️ ระบบตรวจคำต้องห้ามตาม พ.ร.บ. เครื่องสำอาง พ.ศ. 2558 มาตรา 41 อัตโนมัติ</div>
+      </div>
+
+      <div id="claimWarning"></div>
+
+      <hr class="divider">
+
+      <button class="btn btn-primary" id="generateBtn" onclick="generate()">✨ สร้างฉลาก &amp; ตรวจสอบ</button>
+      <div class="btn-group">
+        <button class="btn btn-outline" onclick="downloadPNG()">📷 บันทึก PNG</button>
+        <button class="btn btn-outline" onclick="downloadPDF()">📄 บันทึก PDF</button>
+      </div>
+      <button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="copyLabel()">📋 คัดลอกข้อมูลฉลาก</button>
+      <button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="printLabel()">🖨️ พิมพ์ฉลาก</button>
+      <button class="btn btn-outline" style="margin-top:8px;width:100%;color:rgba(255,80,80,0.7);border-color:rgba(255,80,80,0.2);" onclick="clearForm()">🗑️ ล้างข้อมูลทั้งหมด</button>
+    </div>
+
+    <!-- Analysis Result (form-based) -->
+    <div class="glass-card" id="formAnalysisCard" style="display:none;">
+      <div class="section-title">
+        <div class="section-icon">📊</div>
+        <div><h2>ผลการตรวจสอบฉลาก</h2><p>วิเคราะห์ตาม พ.ร.บ. เครื่องสำอาง พ.ศ. 2558</p></div>
+      </div>
+      <div id="formScoreArea"></div>
+      <div class="analysis-grid" id="formAnalysisGrid"></div>
+      <div id="formRecsArea"></div>
+    </div>
+
+    <!-- Label Preview -->
+    <div class="glass-card">
+      <div class="section-title">
+        <div class="section-icon">🏷️</div>
+        <div><h2>ตัวอย่างฉลาก</h2><p>Live preview อัปเดตอัตโนมัติขณะกรอกข้อมูล</p></div>
+      </div>
+            <div id="label-preview-wrapper">
+        <div id="label-preview">
+          <div class="label-placeholder">
+            <div class="ph-icon">🏷️</div>
+            <p>กรอกข้อมูลด้านบนเพื่อดูตัวอย่างฉลาก</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================ TAB: CHECK ================================================ -->
+  <div class="tab-panel" id="panel-check" role="tabpanel" aria-labelledby="tab-check">
+    <div class="glass-card">
+      <div class="section-title">
+        <div class="section-icon">🔍</div>
+        <div><h2>ตรวจฉลากจากรูปภาพ</h2><p>ใช้ Tesseract.js OCR + Smart Rule-Based AI</p></div>
+      </div>
+
+      <!-- Steps -->
+      <div class="steps-row">
+        <div class="step-item" id="step1"><div class="step-num" id="s1">1</div><span>อัปโหลดรูปภาพฉลาก</span></div>
+        <div class="step-item" id="step2"><div class="step-num" id="s2">2</div><span>Tesseract.js อ่านข้อความ (OCR)</span></div>
+        <div class="step-item" id="step3"><div class="step-num" id="s3">3</div><span>Smart AI วิเคราะห์ตาม พ.ร.บ. เครื่องสำอาง</span></div>
+      </div>
+
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="imageInput" accept="image/*" onchange="onFileChange(event)" aria-label="อัปโหลดรูปภาพฉลาก">
+        <div class="upload-icon-big">📷</div>
+        <div class="upload-text-main">คลิกหรือลากรูปมาวางที่นี่</div>
+        <div class="upload-text-sub">รองรับ JPG, PNG, WEBP, HEIC — ขนาดสูงสุด 10 MB</div>
+      </div>
+
+      <img id="preview-img" alt="ตัวอย่างรูปภาพฉลากที่อัปโหลด">
+
+      <div style="margin-top:16px;">
+        <button class="btn btn-success" id="checkBtn" onclick="checkImage()" disabled aria-label="ตรวจสอบฉลากด้วย AI">
+          🔍 ตรวจสอบฉลากด้วย AI
+        </button>
+      </div>
+
+      <div id="progress-section" style="display:none;">
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <span id="progress-label-text">กำลังประมวลผล...</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div id="ocrTextSection" style="display:none;">
+        <div style="display:none;">📄 ข้อความที่อ่านได้จาก OCR:</div>
+        <div class="ocr-box" id="ocrTextBox"></div>
+      </div>
+
+      <div id="imageResult"></div>
+    </div>
+  </div>
+
+  <!-- ================================================ TAB: LAW ================================================ -->
+  <div class="tab-panel" id="panel-law" role="tabpanel" aria-labelledby="tab-law">
+    <div class="glass-card">
+      <div class="section-title">
+        <div class="section-icon">⚖️</div>
+        <div><h2>คำต้องห้ามตาม พ.ร.บ. เครื่องสำอาง พ.ศ. 2558</h2><p>มาตรา 41 — ระบบตรวจจับอัตโนมัติ</p></div>
+      </div>
+      <div style="font-size:0.8rem;color:rgba(15,23,42,0.4);margin-bottom:16px;line-height:1.6;">
+        คำเหล่านี้ถูกตรวจจับโดยอัตโนมัติ ทั้งในช่องกรอกข้อมูล (Tab ออกแบบฉลาก) และการอ่านจากรูปภาพ (Tab ตรวจจากรูป)
+      </div>
+
+      <details class="law-section" open>
+        <summary style="color:#fca5a5;">📌 มาตรา 41(1) — โฆษณาเกินจริง / เป็นเท็จ</summary>
+        <div class="law-content">
+          <div class="law-tags">
+            <span class="law-tag lt-red">ที่สุด / ที่สุดในโลก</span>
+            <span class="law-tag lt-red">ปลอดภัย / ปลอดภัย 100%</span>
+            <span class="law-tag lt-red">ไร้สารพิษ / ไร้สารตกค้าง</span>
+            <span class="law-tag lt-red">ไม่ระคายเคืองผิว</span>
+            <span class="law-tag lt-red">ไม่มีผลข้างเคียง</span>
+            <span class="law-tag lt-red">จบทุกปัญหาผิว / จบทุกปัญหาสิว</span>
+            <span class="law-tag lt-red">ขาวทันที / เห็นผลทันที</span>
+            <span class="law-tag lt-red">ผ่านการรับรองจาก อย.</span>
+            <span class="law-tag lt-red">ขาวไวกว่าฉีด</span>
+            <span class="law-tag lt-red">หน้าเรียวไม่ง้อโบท็อกซ์</span>
+            <span class="law-tag lt-red">เต่งตึงเหมือนยิงเลเซอร์</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="law-section">
+        <summary style="color:var(--gold-200);">📌 มาตรา 41 วรรคสอง(2) — ก่อให้เกิดความเข้าใจผิดในสาระสำคัญ</summary>
+        <div class="law-content">
+          <div class="law-tags">
+            <span class="law-tag lt-orange">ดูดซับสารพิษ / ล้างสารพิษ</span>
+            <span class="law-tag lt-orange">กระชับสัดส่วน</span>
+            <span class="law-tag lt-orange">สลายไขมัน</span>
+            <span class="law-tag lt-orange">ลดความอ้วน / ลดน้ำหนัก</span>
+            <span class="law-tag lt-orange">ต่อต้านอนุมูลอิสระ</span>
+            <span class="law-tag lt-orange">กระตุ้นการสร้างคอลลาเจน</span>
+            <span class="law-tag lt-orange">ลดการสร้างเม็ดสีผิว</span>
+            <span class="law-tag lt-orange">ลดผมหงอก</span>
+            <span class="law-tag lt-orange">เร่งการงอกของเส้นผม</span>
+            <span class="law-tag lt-orange">เผาผลาญไขมัน</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="law-section">
+        <summary style="color:#c4b5fd;">📌 มาตรา 41 วรรคสอง(3) — แสดงสรรพคุณเป็นการรักษาโรค</summary>
+        <div class="law-content">
+          <div class="law-tags">
+            <span class="law-tag lt-purple">รักษา / รักษาสิว / รักษาโรค</span>
+            <span class="law-tag lt-purple">หายขาด</span>
+            <span class="law-tag lt-purple">กำจัดสิวถาวร</span>
+            <span class="law-tag lt-purple">ป้องกันหรือรักษาฝ้า</span>
+            <span class="law-tag lt-purple">ระงับ/ยับยั้งแบคทีเรีย</span>
+            <span class="law-tag lt-purple">ยับยั้งเชื้อรา</span>
+            <span class="law-tag lt-purple">ฆ่าเชื้อ</span>
+            <span class="law-tag lt-purple">ต้านมะเร็ง</span>
+            <span class="law-tag lt-purple">ลดการอักเสบของผิวหนัง</span>
+            <span class="law-tag lt-purple">ทาผิวกายเพื่อไล่ยุง/แมลง</span>
+            <span class="law-tag lt-purple">โกลมเส้นผมกำจัดเหา</span>
+            <span class="law-tag lt-purple">บรรเทาอาการปวด</span>
+            <span class="law-tag lt-purple">รักษาแผล</span>
+            <span class="law-tag lt-purple">โรคผิวหนัง / โรคปลาริกินต์</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="law-section">
+        <summary style="color:#5eead4;">📌 มาตรา 41 วรรคสอง(4) — สรรพคุณบำรุงกาย (เกินขอบเขตเครื่องสำอาง)</summary>
+        <div class="law-content">
+          <div class="law-tags">
+            <span class="law-tag lt-teal">แข็งตัวได้นานขึ้น</span>
+            <span class="law-tag lt-teal">เพิ่มขนาดและความแข็งแรง</span>
+            <span class="law-tag lt-teal">กระชับภายใน / ช่องคลอดฟิต</span>
+            <span class="law-tag lt-teal">บรรเทาช่องคลอดแห้ง</span>
+            <span class="law-tag lt-teal">เพิ่มสมรรถภาพทางเพศ</span>
+            <span class="law-tag lt-teal">ชะลอการหลั่ง</span>
+            <span class="law-tag lt-teal">แก้ปัญหาไม่แข็งตัว</span>
+            <span class="law-tag lt-teal">ชะลอความชรา</span>
+            <span class="law-tag lt-teal">รีแพร์</span>
+            <span class="law-tag lt-teal">เสริมสมรรถภาพ</span>
+          </div>
+        </div>
+      </details>
+
+      <div class="law-footer">
+        ⚖️ อ้างอิง: พ.ร.บ. เครื่องสำอาง พ.ศ. 2558 | คู่มือโฆษณาเครื่องสำอาง ฉบับปรับปรุง พ.ศ. 2567 สำนักงาน อย.<br>
+        📞 สอบถามเพิ่มเติม: สำนักงานสาธารณสุขจังหวัดศรีสะเกษ กลุ่มงานคุ้มครองผู้บริโภคและเภสัชสาธารณสุข
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================ TAB: HISTORY ================================================ -->
+  <div class="tab-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-history">
+    <div class="glass-card">
+      <div class="section-title" style="margin-bottom:8px;">
+        <div class="section-icon">📋</div>
+        <div><h2>ประวัติการตรวจสอบ</h2><p>บันทึก 10 รายการล่าสุดในเครื่อง</p></div>
+      </div>
+      <button class="btn btn-outline" style="width:auto;padding:7px 16px;font-size:0.8rem;margin-bottom:16px;" onclick="clearHistory()">🗑️ ลบประวัติทั้งหมด</button>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- ================================================ TAB: FEEDBACK ================================================ -->
+  <div class="tab-panel" id="panel-feedback" role="tabpanel" aria-labelledby="tab-feedback">
+    <div class="glass-card">
+      <div class="section-title">
+        <div class="section-icon">⭐</div>
+        <div><h2>ความพึงพอใจในการใช้งาน</h2><p>ข้อมูลนี้จะถูกบันทึกเพื่อพัฒนาระบบ</p></div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="fb_name">ชื่อผู้ผลิต / ผู้ประกอบการ</label>
+          <input type="text" id="fb_name" class="form-input" placeholder="ชื่อบุคคลหรือชื่อกิจการ">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fb_contact">เบอร์โทร / อีเมล (ถ้ามี)</label>
+          <input type="text" id="fb_contact" class="form-input" placeholder="สำหรับติดตามผล">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label" for="fb_product">ชื่อผลิตภัณฑ์ที่ใช้งานวันนี้</label>
+          <input type="text" id="fb_product" class="form-input" placeholder="ชื่อสินค้าที่กำลังออกแบบฉลาก">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:6px;">
+        <label class="form-label">ระดับความพึงพอใจ</label>
+        <div class="stars-row">
+          <button class="star-btn" id="star1" onclick="setRating(1)" aria-label="1 ดาว">⭐</button>
+          <button class="star-btn" id="star2" onclick="setRating(2)" aria-label="2 ดาว">⭐</button>
+          <button class="star-btn" id="star3" onclick="setRating(3)" aria-label="3 ดาว">⭐</button>
+          <button class="star-btn" id="star4" onclick="setRating(4)" aria-label="4 ดาว">⭐</button>
+          <button class="star-btn" id="star5" onclick="setRating(5)" aria-label="5 ดาว">⭐</button>
+        </div>
+        <div class="rating-label" id="ratingLabel"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="feedback">ข้อเสนอแนะ / ปัญหาที่พบ</label>
+        <textarea id="feedback" class="form-textarea" placeholder="เช่น ระบบใช้งานง่าย / อยากให้เพิ่มฟีเจอร์ ... / พบปัญหา ..." rows="4"></textarea>
+      </div>
+
+      <div id="fb-status"></div>
+      <button class="btn btn-gold" id="fbBtn" onclick="submitFeedback()">📨 ส่งข้อมูลความพึงพอใจ</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+let rating = 0;
+let ocrText = "";
+let selectedFile = null;
+let lastScore = 0;
+
+/* ============================================================
+   BANNED WORDS — พ.ร.บ. เครื่องสำอาง พ.ศ. 2558 มาตรา 41
+   ============================================================ */
+const BANNED = {
+  exag: [
+    "ที่สุด","ที่สุดในโลก","ปลอดภัย","ปลอดภัย100%","ปลอดภัย 100%",
+    "ไร้สารพิษ","ไร้สารตกค้าง","ไม่ระคายเคืองผิว","ไม่มีผลข้างเคียง",
+    "จบทุกปัญหาผิว","จบทุกปัญหาสิว",
+    "ขาวทันที","ขาวเร็ว","ผิวขาวใสทันที","เห็นผลทันที",
+    "ผ่านมาตรฐาน","ผ่านการรับรองจาก อย.","ขาวไวกว่าฉีด",
+    "หน้าเรียวไม่ง้อโบท็อกซ์","เต่งตึงเหมือนยิงเลเซอร์",
+  ],
+  mislead: [
+    "ดูดซับสารพิษ","ล้างสารพิษ","กระชับสัดส่วน","สลายไขมัน",
+    "ลดความอ้วน","ลดน้ำหนัก","ต่อต้านอนุมูลอิสระ","กระตุ้นการสร้างคอลลาเจน",
+    "ลดการสร้างเม็ดสีผิว","ลดผมหงอก","เร่งการงอกของเส้นผม",
+    "ลดน้ำหนักได้ทันที","เผาผลาญไขมัน",
+  ],
+  medical: [
+    "รักษา","รักษาสิว","รักษาโรค","หายขาด","กำจัดสิวถาวร",
+    "ป้องกันหรือลดการอักเสบของสิว","ป้องกันหรือรักษาฝ้า",
+    "ระงับหรือยับยั้งแบคทีเรีย","ยับยั้งเชื้อรา","ฆ่าเชื้อ","ต้านมะเร็ง",
+    "ลดการอักเสบของผิวหนัง","ทาผิวกาย เพื่อไล่ยุงหรือแมลง",
+    "โกลมเส้นผมเพื่อกำจัดเหา","บรรเทาอาการปวด",
+    "รักษาแผล","รักษาโรคผิวหนัง","โรคปลาริกินต์",
+    "อักเสบ","สิว"
+  ],
+  body: [
+    "แข็งตัวได้นานขึ้น","เพิ่มขนาดและความแข็งแรง","รีแพร์",
+    "กระชับภายใน","ช่องคลอดฟิต","บรรเทาช่องคลอดแห้ง",
+    "เพิ่มสมรรถภาพทางเพศ","ชะลอการหลั่ง","แก้ปัญหาไม่แข็งตัว",
+    "เพิ่มสมรรถภาพ","ชะลอความชรา",
+  ]
+};
+
+function checkBanned(text) {
+  const t = text;
+  return {
+    exag:    BANNED.exag.filter(w => t.includes(w)),
+    mislead: BANNED.mislead.filter(w => t.includes(w)),
+    medical: BANNED.medical.filter(w => t.includes(w)),
+    body:    BANNED.body.filter(w => t.includes(w)),
+  };
+}
+
+/* ============================================================
+   TEMPLATES
+   ============================================================ */
+const TEMPLATES = {
+  cream: {
+    name: "ครีมบำรุงผิวหน้า Glow+",
+    type: "ครีม",
+    ing: "Water, Glycerin, Niacinamide, Hyaluronic Acid, Centella Asiatica Extract, Vitamin E, Xanthan Gum, Phenoxyethanol",
+    usage: "ทาบางๆ บนผิวหน้าที่ทำความสะอาดแล้ว เช้า-เย็น",
+    manufacturer: "บริษัท ตัวอย่าง จำกัด\n99 ถ.ราษฎร์บำรุง ต.เมือง อ.เมือง จ.ศรีสะเกษ 33000\nโทร. 045-000000",
+    weight: "50 g",
+    lot: "LOT2025001",
+    claim: "หากเกิดการระคายเคือง ให้หยุดใช้ทันที และปรึกษาแพทย์ เก็บให้ห่างมือเด็ก",
+  },
+  serum: {
+    name: "เซรั่มบำรุงผิว Hydra Boost",
+    type: "เซรั่ม",
+    ing: "Water, Niacinamide 10%, Hyaluronic Acid 2%, Glycerin, Panthenol, Allantoin, Carbomer, Sodium Hydroxide, Phenoxyethanol",
+    usage: "หยด 3-4 หยดบนผิวหน้าที่สะอาด นวดเบาๆ จนซึมเข้าผิว ก่อนทาครีมบำรุง",
+    manufacturer: "บริษัท ตัวอย่าง จำกัด\n99 ถ.ราษฎร์บำรุง ต.เมือง อ.เมือง จ.ศรีสะเกษ 33000",
+    weight: "30 ml",
+    lot: "LOT2025002",
+    claim: "หลีกเลี่ยงการสัมผัสดวงตา เก็บในที่เย็นและแห้ง",
+  },
+  lotion: {
+    name: "โลชั่นบำรุงผิวกาย",
+    type: "โลชั่น",
+    ing: "Water, Glycerin, Shea Butter, Aloe Vera Gel, Vitamin E, Jojoba Oil, Cetearyl Alcohol, Phenoxyethanol",
+    usage: "ทาบนผิวกายหลังอาบน้ำ นวดจนซึมเข้าผิว",
+    manufacturer: "บริษัท ตัวอย่าง จำกัด\n99 ถ.ราษฎร์บำรุง ต.เมือง อ.เมือง จ.ศรีสะเกษ 33000",
+    weight: "200 ml",
+    lot: "LOT2025003",
+    claim: "เหมาะสำหรับผิวแห้ง ทาเช้า-เย็น เพื่อผลลัพธ์ที่ดีที่สุด",
+  },
+  shampoo: {
+    name: "แชมพูสมุนไพรขิง",
+    type: "แชมพู",
+    ing: "Water, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Zingiber Officinale (Ginger) Extract, Glycerin, Panthenol, Citric Acid, Phenoxyethanol",
+    usage: "ทำให้ผมชุ่มน้ำ บีบแชมพูลงมือ ถูให้เป็นฟอง นวดหนังศีรษะ 1-2 นาที แล้วล้างออกให้สะอาด",
+    manufacturer: "บริษัท ตัวอย่าง จำกัด\n99 ถ.ราษฎร์บำรุง ต.เมือง อ.เมือง จ.ศรีสะเกษ 33000",
+    weight: "250 ml",
+    lot: "LOT2025004",
+    claim: "หลีกเลี่ยงการสัมผัสดวงตา หากเข้าตา ล้างออกด้วยน้ำสะอาดทันที",
+  },
+  sunscreen: {
+    name: "ครีมกันแดด SPF50+ PA+++",
+    type: "ครีมกันแดด",
+    ing: "Water, Zinc Oxide, Titanium Dioxide, Glycerin, Dimethicone, Vitamin E, Aloe Vera Extract, Phenoxyethanol",
+    usage: "ทาบนผิวก่อนออกแดด 15 นาที ทาซ้ำทุก 2 ชั่วโมงเมื่อต้องอยู่กลางแดดนาน",
+    manufacturer: "บริษัท ตัวอย่าง จำกัด\n99 ถ.ราษฎร์บำรุง ต.เมือง อ.เมือง จ.ศรีสะเกษ 33000",
+    weight: "50 ml",
+    lot: "LOT2025005",
+    claim: "ไม่ทาบริเวณรอบดวงตาโดยตรง เก็บห่างจากแสงแดดโดยตรง",
+  },
+  lip: {
+    name: "ลิปสติกบำรุงริมฝีปาก",
+    type: "ลิปสติก",
+    ing: "Castor Oil, Beeswax, Carnauba Wax, Vitamin E, Jojoba Oil, Shea Butter, Flavor, CI 15850",
+    usage: "ทาบนริมฝีปากตามต้องการ",
+    manufacturer: "บริษัท ตัวอย่าง จำกัด\n99 ถ.ราษฎร์บำรุง ต.เมือง อ.เมือง จ.ศรีสะเกษ 33000",
+    weight: "3.5 g",
+    lot: "LOT2025006",
+    claim: "หากเกิดอาการแพ้หรือระคายเคือง ให้หยุดใช้ทันที",
+  },
+  soap: {
+    name: "สบู่สมุนไพรขมิ้นชัน",
+    type: "สบู่",
+    ing: "Sodium Cocoate, Sodium Palmate, Glycerin, Curcuma Longa (Turmeric) Extract, Aqua, Fragrance, Titanium Dioxide",
+    usage: "ทำให้ผิวชุ่มน้ำ ฟอกสบู่ แล้วล้างออกด้วยน้ำสะอาด",
+    manufacturer: "บริษัท ตัวอย่าง จำกัด\n99 ถ.ราษฎร์บำรุง ต.เมือง อ.เมือง จ.ศรีสะเกษ 33000",
+    weight: "90 g",
+    lot: "LOT2025007",
+    claim: "หลีกเลี่ยงการสัมผัสดวงตา เก็บให้แห้งเมื่อไม่ใช้งาน",
+  },
+  blank: {
+    name: "", type: "", ing: "", usage: "", manufacturer: "",
+    weight: "", lot: "", claim: "",
+  }
+};
+
+function applyTemplate(key) {
+  const t = TEMPLATES[key];
+  if (!t) return;
+  document.getElementById("name").value = t.name;
+  // set select
+  const sel = document.getElementById("type");
+  let found = false;
+  for (let i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].text === t.type || sel.options[i].value === t.type) {
+      sel.selectedIndex = i; found = true; break;
+    }
+  }
+  if (!found) sel.selectedIndex = 0;
+  document.getElementById("typeOther").style.display = "none";
+  document.getElementById("ing").value = t.ing;
+  document.getElementById("usage").value = t.usage;
+  document.getElementById("manufacturer").value = t.manufacturer;
+  document.getElementById("weight").value = t.weight;
+  document.getElementById("lot").value = t.lot;
+  document.getElementById("claim").value = t.claim;
+
+  // update char counts
+  countChars("ing","ing-count");
+  countChars("claim","claim-count");
+  checkClaimsRealtime();
+  autoPreview();
+
+  // highlight selected template
+  document.querySelectorAll(".template-card").forEach(c => c.classList.remove("selected"));
+  event.currentTarget.classList.add("selected");
+
+  showToast("✅ โหลด Template " + (t.name || "เปล่า") + " แล้ว");
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function switchTab(tab) {
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    b.classList.remove("active");
+    b.setAttribute("aria-selected","false");
+  });
+  document.getElementById("panel-" + tab).classList.add("active");
+  document.getElementById("tab-" + tab).classList.add("active");
+  document.getElementById("tab-" + tab).setAttribute("aria-selected","true");
+  if (tab === "history") renderHistory();
+}
+
+/* ============================================================
+   FORM HELPERS
+   ============================================================ */
+function toggleOtherType(sel) {
+  document.getElementById("typeOther").style.display = sel.value === "อื่นๆ" ? "block" : "none";
+}
+
+function countChars(inputId, countId) {
+  const len = document.getElementById(inputId).value.length;
+  document.getElementById(countId).textContent = len.toLocaleString() + " ตัวอักษร";
+}
+
+/* ============================================================
+   REAL-TIME BANNED WORD CHECK
+   ============================================================ */
+function checkClaimsRealtime() {
+  const text = document.getElementById("claim").value;
+  const found = checkBanned(text);
+  const all = [...found.exag, ...found.mislead, ...found.medical, ...found.body];
+  const box = document.getElementById("claimWarning");
+
+  if (all.length === 0) {
+    box.innerHTML = text.length > 3
+      ? `<div class="banned-alert banned-pass">✅ ไม่พบคำต้องห้ามในช่องนี้</div>`
+      : "";
+    return;
+  }
+
+  let html = `<div class="banned-alert banned-fail"><strong>⚠️ พบคำต้องห้ามตาม พ.ร.บ. เครื่องสำอาง พ.ศ. 2558 มาตรา 41</strong>`;
+  if (found.exag.length)    html += `<div class="banned-section"><strong>ม.41(1) โฆษณาเกินจริง:</strong> ${found.exag.map(w=>`<span class="banned-word-tag">${w}</span>`).join("")}</div>`;
+  if (found.mislead.length) html += `<div class="banned-section"><strong>ม.41(2) เข้าใจผิดสาระสำคัญ:</strong> ${found.mislead.map(w=>`<span class="banned-word-tag">${w}</span>`).join("")}</div>`;
+  if (found.medical.length) html += `<div class="banned-section"><strong>ม.41(3) อ้างรักษาโรค:</strong> ${found.medical.map(w=>`<span class="banned-word-tag">${w}</span>`).join("")}</div>`;
+  if (found.body.length)    html += `<div class="banned-section"><strong>ม.41(4) สรรพคุณบำรุงกาย:</strong> ${found.body.map(w=>`<span class="banned-word-tag">${w}</span>`).join("")}</div>`;
+  html += `<div style="margin-top:8px;font-size:0.78rem;color:rgba(255,120,120,0.7);">กรุณาแก้ไขก่อนพิมพ์ฉลาก — มีโทษตาม พ.ร.บ. เครื่องสำอาง พ.ศ. 2558</div></div>`;
+  box.innerHTML = html;
+}
+
+/* ============================================================
+   AUTO PREVIEW
+   ============================================================ */
+function autoPreview() {
+  const name = document.getElementById("name").value.trim();
+  const type = document.getElementById("type").value || document.getElementById("typeOther").value || "";
+  const ing = document.getElementById("ing").value.trim();
+  const usage = document.getElementById("usage").value.trim();
+  const mfr = document.getElementById("manufacturer").value.trim();
+  const weight = document.getElementById("weight").value.trim();
+  const lot = document.getElementById("lot").value.trim();
+  const mfg = document.getElementById("mfg").value;
+  const exp = document.getElementById("exp").value;
+  const notify = document.getElementById("notify").value.trim();
+  const claim = document.getElementById("claim").value.trim();
+
+  if (!name) {
+    document.getElementById("label-preview").innerHTML = `<div class="label-placeholder"><div class="ph-icon">🏷️</div><p>กรอกชื่อผลิตภัณฑ์เพื่อดูตัวอย่างฉลาก</p></div>`;
+    return;
+  }
+
+  const fmtDate = (d) => {
+    if (!d) return '-';
+    try {
+      const [y,m,day] = d.split('-');
+      const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      return `${parseInt(day)} ${months[parseInt(m)-1]} ${parseInt(y)+543}`;
+    } catch(e) { return d; }
+  };
+
+  document.getElementById("label-preview").innerHTML = `
+    <div class="lbl-product-name">
+      ${esc(name)}
+      ${type ? `<span class="lbl-type">${esc(type)}</span>` : ''}
+    </div>
+    ${ing    ? `<div class="lbl-row"><span class="lbl-key">ส่วนประกอบ:</span> ${esc(ing)}</div>` : ''}
+    ${usage  ? `<div class="lbl-row"><span class="lbl-key">วิธีใช้:</span> ${esc(usage)}</div>` : ''}
+    ${mfr    ? `<div class="lbl-row"><span class="lbl-key">ผู้ผลิต:</span> ${esc(mfr).replace(/\n/g,'<br>')}</div>` : ''}
+    ${weight ? `<div class="lbl-row"><span class="lbl-key">ปริมาณสุทธิ:</span> ${esc(weight)}</div>` : ''}
+    ${lot    ? `<div class="lbl-row"><span class="lbl-key">ครั้งที่ผลิต:</span> ${esc(lot)}</div>` : ''}
+    ${mfg    ? `<div class="lbl-row"><span class="lbl-key">วันที่ผลิต:</span> ${fmtDate(mfg)}</div>` : ''}
+    ${exp    ? `<div class="lbl-row"><span class="lbl-key">วันหมดอายุ:</span> ${fmtDate(exp)}</div>` : ''}
+    ${notify ? `<div class="lbl-row"><span class="lbl-key">เลขที่ใบรับจดแจ้ง:</span> ${esc(notify)}</div>` : ''}
+    ${claim  ? `<div class="lbl-warn">⚠️ <strong>คำเตือน:</strong> ${esc(claim)}</div>` : ''}
+    <div class="lbl-footer">สร้างโดย Smart Cosme — สสจ.ศรีสะเกษ</div>
+  `;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ============================================================
+   GENERATE + ANALYSE (FORM)
+   ============================================================ */
+function generate() {
+  const name = document.getElementById("name").value.trim();
+  if (!name) { showToast("⚠️ กรุณากรอกชื่อผลิตภัณฑ์"); return; }
+
+  autoPreview();
+  const result = analyzeFormData();
+  renderFormAnalysis(result);
+  saveHistory(result);
+  showToast("✅ สร้างฉลากและวิเคราะห์เสร็จแล้ว");
+
+  // scroll to analysis
+  setTimeout(() => {
+    document.getElementById("formAnalysisCard").scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 200);
+}
+
+function analyzeFormData() {
+  const name = document.getElementById("name").value.trim();
+  const type = document.getElementById("type").value || document.getElementById("typeOther").value || "";
+  const ing  = document.getElementById("ing").value.trim();
+  const usage = document.getElementById("usage").value.trim();
+  const mfr  = document.getElementById("manufacturer").value.trim();
+  const weight = document.getElementById("weight").value.trim();
+  const lot  = document.getElementById("lot").value.trim();
+  const mfg  = document.getElementById("mfg").value;
+  const exp  = document.getElementById("exp").value;
+  const notify = document.getElementById("notify").value.trim();
+  const claim = document.getElementById("claim").value.trim();
+
+  const items = [];
+  let score = 0;
+  const recs = [];
+
+  const add = (label, status, detail) => {
+    items.push({label, status, detail});
+    if (status === "pass") score += 12;
+    else if (status === "warn") score += 5;
+  };
+
+  // 1. ชื่อผลิตภัณฑ์
+  add("1. ชื่อผลิตภัณฑ์", name ? "pass" : "fail",
+    name ? `"${name}"` : "กรุณากรอกชื่อผลิตภัณฑ์");
+  if (!name) recs.push("ต้องระบุชื่อผลิตภัณฑ์");
+
+  // 2. ประเภท
+  add("2. ประเภทสินค้า", type ? "pass" : "warn",
+    type ? `"${type}"` : "ยังไม่ได้เลือกประเภทสินค้า (แนะนำให้ระบุ)");
+  if (!type) recs.push("ควรระบุประเภทสินค้า");
+
+  // 3. ส่วนประกอบ
+  add("3. ส่วนประกอบ (Ingredients)", ing ? "pass" : "fail",
+    ing ? "ระบุส่วนประกอบแล้ว" : "ต้องระบุส่วนประกอบตามกฎหมาย");
+  if (!ing) recs.push("ต้องระบุส่วนประกอบทั้งหมดเรียงตามปริมาณมากไปน้อย");
+
+  // 4. วิธีใช้
+  add("4. วิธีใช้", usage ? "pass" : "warn",
+    usage ? "ระบุวิธีใช้แล้ว" : "ควรระบุวิธีใช้");
+  if (!usage) recs.push("ควรระบุวิธีใช้เพื่อความปลอดภัย");
+
+  // 5. ผู้ผลิต
+  add("5. ชื่อ-ที่อยู่ผู้ผลิต", mfr ? "pass" : "fail",
+    mfr ? "ระบุข้อมูลผู้ผลิตแล้ว" : "ต้องระบุชื่อและที่อยู่ผู้ผลิต");
+  if (!mfr) recs.push("ต้องระบุชื่อและที่อยู่ผู้ผลิตหรือผู้จำหน่าย");
+
+  // 6. ปริมาณ
+  add("6. ปริมาณสุทธิ", weight ? "pass" : "fail",
+    weight ? `"${weight}"` : "ต้องระบุปริมาณสุทธิ");
+  if (!weight) recs.push("ต้องระบุปริมาณสุทธิ (กรัม หรือ มิลลิลิตร)");
+
+  // 7. วันที่
+  const hasDate = mfg || exp;
+  add("7. วันที่ผลิต / วันหมดอายุ",
+    mfg && exp ? "pass" : hasDate ? "warn" : "fail",
+    mfg && exp ? "ระบุทั้งวันผลิตและวันหมดอายุ"
+      : mfg ? "ระบุเฉพาะวันผลิต (ควรระบุวันหมดอายุด้วย)"
+      : exp ? "ระบุเฉพาะวันหมดอายุ (ควรระบุวันผลิตด้วย)"
+      : "ต้องระบุวันที่อย่างน้อยหนึ่งอย่าง");
+  if (!hasDate) recs.push("ต้องระบุวันที่ผลิตหรือวันหมดอายุ");
+
+  // 8. เลขจดแจ้ง
+  const notifyOk = /\d{2,3}-\d-\d{6,}/.test(notify) || notify.length >= 8;
+  add("8. เลขที่ใบรับจดแจ้ง",
+    notify ? (notifyOk ? "pass" : "warn") : "fail",
+    notify ? (notifyOk ? `"${notify}"` : `"${notify}" — รูปแบบควรเป็น เช่น 10-1-6200000`)
+           : "ต้องระบุเลขที่ใบรับจดแจ้ง (ขอได้ที่ อย. หรือ สสจ.)");
+  if (!notify) recs.push("ต้องระบุเลขที่ใบรับจดแจ้ง");
+
+  // 9. คำต้องห้าม (รวมทุกช่อง)
+  const allText = [name, type, ing, usage, mfr, claim].join(" ");
+  const bFound = checkBanned(allText);
+  const allBanned = [...bFound.exag, ...bFound.mislead, ...bFound.medical, ...bFound.body];
+  if (allBanned.length === 0) {
+    add("9. คำต้องห้าม (มาตรา 41)", "pass", "ไม่พบคำต้องห้ามในข้อมูลฉลาก");
+  } else {
+    items.push({
+      label: "9. คำต้องห้าม (มาตรา 41)",
+      status: "fail",
+      detail: `พบ ${allBanned.length} คำ: ${allBanned.slice(0,5).join(", ")}${allBanned.length>5?'...':''}`
+    });
+    recs.push(`แก้ไขคำต้องห้ามที่พบ: ${allBanned.join(", ")}`);
+    // ลด score สำหรับ fail item นี้
+  }
+
+  const maxScore = 9 * 12;
+  const pct = Math.min(100, Math.round((score / maxScore) * 100));
+
+  return { items, score: pct, recs, bFound, name };
+}
+
+function renderFormAnalysis(result) {
+  const card = document.getElementById("formAnalysisCard");
+  card.style.display = "block";
+
+  // Score gauge
+  const s = result.score;
+  const verdict = s >= 80 ? {cls:"verdict-pass", text:"✅ ผ่านเกณฑ์"} : s >= 50 ? {cls:"verdict-warn", text:"⚠️ ควรปรับปรุง"} : {cls:"verdict-fail", text:"❌ ไม่ผ่านเกณฑ์"};
+  const gaugeColor = s >= 80 ? "#22c55e" : s >= 50 ? "#f59e0b" : "#ef4444";
+  const circumf = 2 * Math.PI * 36;
+  const dashOffset = circumf * (1 - s/100);
+
+  document.getElementById("formScoreArea").innerHTML = `
+    <div class="score-container">
+      <div class="score-gauge">
+        <svg viewBox="0 0 90 90">
+          <circle class="gauge-bg" cx="45" cy="45" r="36"/>
+          <circle class="gauge-fill" cx="45" cy="45" r="36"
+            stroke="${gaugeColor}"
+            stroke-dasharray="${circumf}"
+            stroke-dashoffset="${dashOffset}"/>
+        </svg>
+        <div class="score-num">${s}<span style="font-size:0.7rem;font-weight:500;">%</span></div>
+      </div>
+      <div class="score-info">
+        <h3>คะแนนความสมบูรณ์</h3>
+        <span class="score-verdict ${verdict.cls}">${verdict.text}</span>
+        <div class="score-desc">${s >= 80 ? 'ฉลากมีความครบถ้วนตามข้อกำหนด' : s >= 50 ? 'ฉลากมีข้อมูลบางส่วน ควรเพิ่มเติม' : 'ฉลากยังขาดข้อมูลสำคัญหลายรายการ'}</div>
+      </div>
+    </div>
+  `;
+
+  // Analysis items
+  const grid = document.getElementById("formAnalysisGrid");
+  grid.innerHTML = result.items.map((item, idx) => {
+    const icon = item.status==="pass"?"✅":item.status==="warn"?"⚠️":"❌";
+    return `<div class="analysis-item ${item.status}" style="animation-delay:${idx*0.06}s">
+      <div class="analysis-icon">${icon}</div>
+      <div class="analysis-content">
+        <div class="analysis-label">${item.label}</div>
+        <div class="analysis-detail">${item.detail}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // Recommendations
+  const recsArea = document.getElementById("formRecsArea");
+  if (result.recs.length > 0) {
+    recsArea.innerHTML = `
+      <div class="result-box result-warn" style="margin-top:16px;">
+        <strong>📋 ข้อแนะนำการปรับปรุง (${result.recs.length} รายการ):</strong>
+        <ul style="margin-top:8px;padding-left:18px;line-height:1.9;">
+          ${result.recs.map(r=>`<li>${r}</li>`).join("")}
+        </ul>
+      </div>`;
+  } else {
+    recsArea.innerHTML = `<div class="result-box result-pass" style="margin-top:16px;">🎉 ฉลากผ่านการตรวจสอบครบทุกรายการ พร้อมสำหรับการผลิต!</div>`;
+  }
+
+  lastScore = result.score;
+}
+
+/* ============================================================
+   SAVE / RENDER HISTORY
+   ============================================================ */
+async function saveHistory(result) {
+  const userId = window.currentUser?.id || 'guest';
+  const historyKey = "cosme_history_" + userId;
+  const records = JSON.parse(localStorage.getItem(historyKey) || "[]");
+  records.unshift({
+    name: result.name || "(ไม่ระบุชื่อ)",
+    score: result.score,
+    date: new Date().toLocaleString("th-TH"),
+    type: document.getElementById("type").value || "",
+    recs: result.recs.length,
+  });
+  if (records.length > 10) records.pop();
+  localStorage.setItem(historyKey, JSON.stringify(records));
+
+  // Send to API for admin
+  const token = localStorage.getItem('cosme_token');
+  if (token) {
+    try {
+      await fetch((window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + '/api/labels', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          productName: result.name || '(ไม่ระบุชื่อ)',
+          productType: document.getElementById('type').value || '-',
+          manufacturer: '-',
+          score: result.score,
+          hasBanned: result.recs.some(r => r.includes('ห้าม'))
+        })
+      });
+    } catch(e) {}
+  }
+}
+
+function renderHistory() {
+  const userId = window.currentUser?.id || 'guest';
+  const records = JSON.parse(localStorage.getItem("cosme_history_" + userId) || "[]");
+  const list = document.getElementById("history-list");
+  if (records.length === 0) {
+    list.innerHTML = `<div class="history-empty">📭 ยังไม่มีประวัติการตรวจสอบ<br>ไปที่ Tab "ออกแบบฉลาก" แล้วกด "สร้างฉลาก"</div>`;
+    return;
+  }
+  list.innerHTML = records.map((r,i) => {
+    const cls = r.score >= 80 ? "hs-good" : r.score >= 50 ? "hs-warn" : "hs-bad";
+    return `<div class="history-item">
+      <div class="history-item-header">
+        <span class="history-item-name">${esc(r.name)}</span>
+        <span class="history-score ${cls}">${r.score}%</span>
+      </div>
+      <div class="history-item-meta">${r.type ? r.type+' · ' : ''}${r.date} · ข้อแนะนำ ${r.recs} รายการ</div>
+    </div>`;
+  }).join("");
+}
+
+function clearHistory() {
+  if (!confirm("ยืนยันการลบประวัติทั้งหมด?")) return;
+  const userId = window.currentUser?.id || 'guest';
+  localStorage.removeItem("cosme_history_" + userId);
+  renderHistory();
+  showToast("🗑️ ลบประวัติทั้งหมดแล้ว");
+}
+
+/* ============================================================
+   DOWNLOAD PNG
+   ============================================================ */
+function downloadPNG() {
+  const preview = document.getElementById("label-preview");
+  if (preview.querySelector(".label-placeholder")) {
+    showToast("⚠️ กรุณาสร้างฉลากก่อน"); return;
+  }
+  showToast("⏳ กำลังสร้างไฟล์รูป...");
+  html2canvas(preview, { backgroundColor: "#ffffff", scale: 2, useCORS: true })
+    .then(canvas => {
+      const a = document.createElement("a");
+      const name = document.getElementById("name").value || "label";
+      a.href = canvas.toDataURL("image/png");
+      a.download = `ฉลาก_${name}_${new Date().toLocaleDateString("th-TH").replace(/\//g,"-")}.png`;
+      a.click();
+      showToast("✅ บันทึกไฟล์ PNG สำเร็จ");
+    }).catch(() => showToast("❌ ไม่สามารถบันทึกไฟล์ได้"));
+}
+
+/* ============================================================
+   DOWNLOAD PDF
+   ============================================================ */
+function downloadPDF() {
+  const preview = document.getElementById("label-preview");
+  if (preview.querySelector(".label-placeholder")) {
+    showToast("⚠️ กรุณาสร้างฉลากก่อน"); return;
+  }
+  showToast("⏳ กำลังสร้างไฟล์ PDF...");
+  html2canvas(preview, { backgroundColor: "#ffffff", scale: 2, useCORS: true })
+    .then(canvas => {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+      const imgData = canvas.toDataURL("image/png");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const imgWidth = pageWidth - 20;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      const name = document.getElementById("name").value || "label";
+      pdf.save(`ฉลาก_${name}_${new Date().toLocaleDateString("th-TH").replace(/\//g,"-")}.pdf`);
+      showToast("✅ บันทึกไฟล์ PDF สำเร็จ");
+    }).catch(() => showToast("❌ ไม่สามารถสร้าง PDF ได้"));
+}
+
+/* ============================================================
+   COPY & PRINT
+   ============================================================ */
+function copyLabel() {
+  const name = document.getElementById("name").value.trim();
+  if (!name) { showToast("⚠️ กรุณากรอกข้อมูลก่อน"); return; }
+  const fmtDate = (d) => {
+    if (!d) return '-';
+    try {
+      const [y,m,day] = d.split('-');
+      const months = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+      return `${parseInt(day)} ${months[parseInt(m)-1]} พ.ศ. ${parseInt(y)+543}`;
+    } catch(e) { return d; }
+  };
+  const text = [
+    `ชื่อผลิตภัณฑ์: ${name}`,
+    `ประเภท: ${document.getElementById("type").value || '-'}`,
+    `ส่วนประกอบ: ${document.getElementById("ing").value || '-'}`,
+    `วิธีใช้: ${document.getElementById("usage").value || '-'}`,
+    `ผู้ผลิต: ${document.getElementById("manufacturer").value || '-'}`,
+    `ปริมาณสุทธิ: ${document.getElementById("weight").value || '-'}`,
+    `ครั้งที่ผลิต: ${document.getElementById("lot").value || '-'}`,
+    `วันที่ผลิต: ${fmtDate(document.getElementById("mfg").value)}`,
+    `วันหมดอายุ: ${fmtDate(document.getElementById("exp").value)}`,
+    `เลขที่ใบรับจดแจ้ง: ${document.getElementById("notify").value || '-'}`,
+    document.getElementById("claim").value ? `คำเตือน: ${document.getElementById("claim").value}` : '',
+  ].filter(Boolean).join("\n");
+  navigator.clipboard.writeText(text).then(() => showToast("📋 คัดลอกข้อมูลแล้ว")).catch(() => showToast("❌ ไม่สามารถคัดลอกได้"));
+}
+
+function printLabel() {
+  const preview = document.getElementById("label-preview");
+  if (preview.querySelector(".label-placeholder")) { showToast("⚠️ กรุณาสร้างฉลากก่อน"); return; }
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Prompt', sans-serif; padding: 20px; background: white; }
+      .lbl-product-name { font-size: 1.1rem; font-weight: 800; color: #1e3a5f; border-bottom: 2px solid #2563eb; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+      .lbl-type { font-size: 0.8rem; background: #dbeafe; color: #1e40af; padding: 2px 10px; border-radius: 99px; }
+      .lbl-row { margin-bottom: 4px; font-size: 0.88rem; color: #1e293b; line-height: 1.8; }
+      .lbl-key { font-weight: 700; color: #2563eb; }
+      .lbl-warn { margin-top: 10px; background: #fef3c7; border-left: 3px solid #f59e0b; padding: 8px 12px; font-size: 0.82rem; color: #78350f; border-radius: 4px; }
+      .lbl-footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.72rem; color: #94a3b8; text-align: right; }
+    </style>
+  </head><body>${preview.innerHTML}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); win.close(); }, 500);
+}
+
+/* ============================================================
+   CLEAR FORM
+   ============================================================ */
+function clearForm() {
+  if (!confirm("ล้างข้อมูลทั้งหมดในฟอร์ม?")) return;
+  ["name","ing","usage","manufacturer","weight","lot","mfg","exp","notify","claim"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+  document.getElementById("type").selectedIndex = 0;
+  document.getElementById("typeOther").style.display = "none";
+  document.getElementById("claimWarning").innerHTML = "";
+  document.getElementById("ing-count").textContent = "0 ตัวอักษร";
+  document.getElementById("claim-count").textContent = "0 ตัวอักษร";
+  document.getElementById("formAnalysisCard").style.display = "none";
+  document.querySelectorAll(".template-card").forEach(c => c.classList.remove("selected"));
+  autoPreview();
+  showToast("🗑️ ล้างข้อมูลทั้งหมดแล้ว");
+}
+
+/* ============================================================
+   IMAGE UPLOAD & OCR
+   ============================================================ */
+function onFileChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  selectedFile = file;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById("preview-img");
+    img.src = e.target.result;
+    img.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+
+  document.getElementById("checkBtn").disabled = false;
+  document.getElementById("imageResult").innerHTML = "";
+  document.getElementById("ocrTextSection").style.display = "none";
+  ocrText = "";
+  setStep(1, "done");
+  setStep(2, "");
+  setStep(3, "");
+}
+
+function setStep(n, state) {
+  const item = document.getElementById("step"+n);
+  const num  = document.getElementById("s"+n);
+  item.className = "step-item" + (state === "done" ? " done" : state === "active" ? " active" : "");
+  num.textContent = state === "done" ? "✓" : String(n);
+}
+
+function setProgress(pct, label) {
+  document.getElementById("progress-section").style.display = "block";
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("progress-pct").textContent = pct + "%";
+  document.getElementById("progress-label-text").textContent = label;
+}
+
+async function checkImage() {
+  if (!selectedFile) { showToast("⚠️ กรุณาเลือกรูปภาพก่อน"); return; }
+
+  const btn = document.getElementById("checkBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังประมวลผล...';
+  document.getElementById("imageResult").innerHTML = "";
+  document.getElementById("ocrTextSection").style.display = "none";
+
+  try {
+    // STEP 2: OCR
+    setStep(2, "active");
+    setProgress(5, "กำลังเริ่มต้น OCR Engine...");
+
+    let text = "";
+    try {
+      const worker = await Tesseract.createWorker('tha+eng', 1, {
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/worker.min.js',
+        langPath:   'https://tessdata.projectnaptha.com/4.0.0',
+        corePath:   'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd-lstm.wasm.js',
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            setProgress(Math.round(10 + m.progress * 55), `OCR กำลังอ่านข้อความ: ${Math.round(m.progress*100)}%`);
+          } else if (m.status === 'loading language traineddata') {
+            setProgress(15, 'กำลังโหลดข้อมูลภาษาไทย...');
+          } else if (m.status === 'initializing api') {
+            setProgress(20, 'กำลังเริ่มต้น OCR Engine...');
+          }
+        }
+      });
+      const result = await worker.recognize(selectedFile);
+      text = result.data.text || "";
+      await worker.terminate();
+    } catch (ocrErr) {
+      console.warn("OCR error:", ocrErr);
+      text = "";
+    }
+
+    ocrText = text.trim();
+    setStep(2, "done");
+
+    // Show OCR text
+    if (ocrText) {
+      document.getElementById("ocrTextSection").style.display = "none";
+      document.getElementById("ocrTextBox").textContent = ocrText;
+    }
+
+    if (!ocrText || ocrText.length < 5) {
+      document.getElementById("imageResult").innerHTML = `
+        <div class="result-box result-warn">
+          ⚠️ <strong>ไม่สามารถอ่านข้อความจากรูปได้</strong><br>
+          กรุณาใช้รูปภาพที่มีความชัดเจน ตัวอักษรไม่เล็กเกินไป มีแสงเพียงพอ และถ่ายตรงๆ
+        </div>`;
+      btn.disabled = false;
+      btn.innerHTML = '🔍 ตรวจสอบฉลากด้วย AI';
+      document.getElementById("progress-section").style.display = "none";
+      return;
+    }
+
+    // STEP 3: Smart Rule-Based AI Analysis
+    setStep(3, "active");
+    setProgress(70, "Smart AI กำลังวิเคราะห์ตาม พ.ร.บ. เครื่องสำอาง...");
+
+    await new Promise(r => setTimeout(r, 400)); // brief UI delay
+    const aiResult = analyzeOCRText(ocrText);
+    setStep(3, "done");
+    setProgress(100, "✅ วิเคราะห์เสร็จสมบูรณ์");
+
+    setTimeout(() => { document.getElementById("progress-section").style.display = "none"; }, 900);
+    renderOCRAnalysis(aiResult);
+    saveHistory({...aiResult, name: "(จากรูปภาพ)"});
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById("imageResult").innerHTML = `<div class="result-box result-fail">❌ เกิดข้อผิดพลาด: ${err.message}</div>`;
+    document.getElementById("progress-section").style.display = "none";
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🔍 ตรวจสอบฉลากด้วย AI';
+}
+
+/* ============================================================
+   ANALYSE OCR TEXT
+   ============================================================ */
+function analyzeOCRText(t) {
+  const items = [];
+  let score = 0;
+  const recs = [];
+
+  const add = (label, status, detail) => {
+    items.push({label, status, detail});
+    if (status === "pass") score += 12;
+    else if (status === "warn") score += 5;
+  };
+
+  // 1. ชื่อผลิตภัณฑ์
+  const hasName = /ครีม|เซรั่ม|โลชั่น|แชมพู|สบู่|น้ำมัน|ลิป|oil|serum|cream|lotion|shampoo|toner|mask|gel|mist|powder|แป้ง|เจล/i.test(t) || t.trim().split('\n')[0].trim().length > 3;
+  add("1. ชื่อผลิตภัณฑ์", hasName ? "pass" : "fail",
+    hasName ? "พบชื่อหรือประเภทผลิตภัณฑ์ในฉลาก" : "ไม่พบชื่อผลิตภัณฑ์ที่ชัดเจน");
+  if (!hasName) recs.push("ระบุชื่อผลิตภัณฑ์ให้ชัดเจนบนฉลาก");
+
+  // 2. ส่วนประกอบ
+  const hasIng = /ส่วนประกอบ|ingredient|aqua|water|glycerin|extract|oil|acid|sodium|potassium|butylene|propylene|dimethicone|tocopherol|niacinamide|hyaluronic|coconut|jojoba|aloe|vitamin|cetearyl|phenoxyethanol|paraben|fragrance|parfum|ci\s*\d/i.test(t);
+  add("2. ส่วนประกอบ (Ingredients)", hasIng ? "pass" : "fail",
+    hasIng ? "พบรายการส่วนประกอบในฉลาก" : "ไม่พบรายการส่วนประกอบ — ต้องระบุตามกฎหมาย");
+  if (!hasIng) recs.push("ต้องระบุส่วนประกอบทั้งหมดเรียงตามปริมาณมากไปน้อย");
+
+  // 3. วิธีใช้
+  const hasUsage = /วิธีใช้|วิธีการใช้|การใช้|ทา|นวด|ล้าง|apply|use|direction|how to|usage|ชำระล้าง/i.test(t);
+  add("3. วิธีใช้", hasUsage ? "pass" : "warn",
+    hasUsage ? "พบคำแนะนำวิธีใช้" : "ไม่พบวิธีใช้ที่ชัดเจน (แนะนำให้ระบุ)");
+  if (!hasUsage) recs.push("ควรระบุวิธีใช้เพื่อความปลอดภัยของผู้บริโภค");
+
+  // 4. ผู้ผลิต
+  const hasMfr = /ผลิตโดย|จำหน่ายโดย|ผู้ผลิต|บริษัท|จำกัด|co\.|ltd|corp|manufactured|distributed|Thailand|กรุงเทพ|นนทบุรี|ปทุม|สมุทร|\d{1,4}\/\d|ถนน|ซอย|หมู่ที่|ต\.|อ\.|จ\.|โทร|tel|phone/i.test(t);
+  add("4. ชื่อ-ที่อยู่ผู้ผลิต", hasMfr ? "pass" : "fail",
+    hasMfr ? "พบข้อมูลผู้ผลิตหรือที่อยู่" : "ไม่พบชื่อและที่อยู่ผู้ผลิต");
+  if (!hasMfr) recs.push("ต้องระบุชื่อและที่อยู่ผู้ผลิตหรือผู้จำหน่าย");
+
+  // 5. ปริมาณสุทธิ
+  const wtMatch = t.match(/(\d+[\.,]?\d*)\s*(g|ml|oz|kg|l|กรัม|มล\.?|ลิตร|fl\.?\s*oz)/i);
+  add("5. ปริมาณสุทธิ", wtMatch ? "pass" : "fail",
+    wtMatch ? `พบปริมาณสุทธิ: ${wtMatch[0]}` : "ไม่พบปริมาณสุทธิ");
+  if (!wtMatch) recs.push("ต้องระบุปริมาณสุทธิ เช่น 50 g, 150 ml");
+
+  // 6. วันที่
+  const hasDate = /mfg|exp|best before|manufacture|expir|หมดอายุ|ผลิต|bb:|use by|\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}|\d{4}[\/-]\d{2}[\/-]\d{2}/i.test(t);
+  const hasDateLabel = /mfg|exp|lot/i.test(t);
+  const hasDateNum = /\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}/.test(t);
+  add("6. วันที่ผลิต / วันหมดอายุ",
+    hasDateNum ? "pass" : hasDateLabel ? "warn" : "fail",
+    hasDateNum ? "พบข้อมูลวันที่ในฉลาก"
+      : hasDateLabel ? "พบช่อง MFG/EXP แต่อาจยังไม่มีวันที่"
+      : "ไม่พบวันที่ผลิตหรือวันหมดอายุ");
+  if (!hasDate) recs.push("ต้องระบุวันที่ผลิตหรือวันหมดอายุ");
+
+  // 7. เลขจดแจ้ง
+  const notifyKW  = /เลขที่ใบรับจดแจ้ง|เลขที่จดแจ้ง|เลขจดแจ้ง|ใบรับแจ้ง|หมายเลขจดแจ้ง/i.test(t);
+  const notifyNum = /\b\d{2,3}-\d-\d{6,}\b|\b\d{10,13}\b/.test(t);
+  const notifyPH  = /x{5,}|0{5,}/i.test(t);
+  add("7. เลขที่ใบรับจดแจ้ง",
+    notifyPH ? "warn" : (notifyKW && notifyNum) ? "pass" : (notifyKW || notifyNum) ? "warn" : "fail",
+    notifyPH ? "พบ placeholder แทนเลขที่ใบรับจดแจ้ง"
+      : (notifyKW && notifyNum) ? "พบคำว่าเลขที่ใบรับจดแจ้ง พร้อมตัวเลข"
+      : notifyKW ? "พบคำว่าเลขที่ใบรับจดแจ้ง แต่ไม่พบตัวเลข"
+      : notifyNum ? "พบรูปแบบตัวเลขคล้ายเลขจดแจ้ง"
+      : "ไม่พบเลขที่ใบรับจดแจ้ง");
+  if (!notifyKW && !notifyNum) recs.push("ต้องระบุเลขที่ใบรับจดแจ้ง (เลขที่จดแจ้ง / เลขที่จดแจ้งเครื่องสำอาง)");
+
+  // 8. คำต้องห้าม
+  const bFound = checkBanned(t);
+  const allBanned = [...bFound.exag, ...bFound.mislead, ...bFound.medical, ...bFound.body];
+  if (allBanned.length === 0) {
+    add("8. คำต้องห้าม (มาตรา 41)", "pass", "ไม่พบคำต้องห้ามในฉลาก");
+  } else {
+    items.push({
+      label: "8. คำต้องห้าม (มาตรา 41)",
+      status: "fail",
+      detail: `⚠️ พบ ${allBanned.length} คำต้องห้าม: ${allBanned.slice(0,6).join(", ")}${allBanned.length>6?'...':''}`
+    });
+    recs.push(`แก้ไขคำต้องห้ามที่พบในฉลาก: ${allBanned.join(", ")}`);
+  }
+
+  const pct = Math.min(100, Math.round((score / (8 * 12)) * 100));
+  return { items, score: pct, recs, bFound };
+}
+
+function renderOCRAnalysis(result) {
+  const s = result.score;
+  const verdict = s >= 80 ? {cls:"verdict-pass", text:"✅ ผ่านเกณฑ์"} : s >= 50 ? {cls:"verdict-warn", text:"⚠️ ควรปรับปรุง"} : {cls:"verdict-fail", text:"❌ ไม่ผ่านเกณฑ์"};
+  const gaugeColor = s >= 80 ? "#22c55e" : s >= 50 ? "#f59e0b" : "#ef4444";
+  const circumf = 2 * Math.PI * 36;
+  const dashOffset = circumf * (1 - s/100);
+
+  let html = `
+    <div class="score-container" style="margin-top:16px;">
+      <div class="score-gauge">
+        <svg viewBox="0 0 90 90">
+          <circle class="gauge-bg" cx="45" cy="45" r="36"/>
+          <circle class="gauge-fill" cx="45" cy="45" r="36"
+            stroke="${gaugeColor}"
+            stroke-dasharray="${circumf}"
+            stroke-dashoffset="${dashOffset}"/>
+        </svg>
+        <div class="score-num">${s}<span style="font-size:0.7rem;font-weight:500;">%</span></div>
+      </div>
+      <div class="score-info">
+        <h3>คะแนนความสมบูรณ์</h3>
+        <span class="score-verdict ${verdict.cls}">${verdict.text}</span>
+        <div class="score-desc">${s >= 80 ? 'ฉลากมีข้อมูลครบถ้วนตามข้อกำหนด' : s >= 50 ? 'ฉลากมีข้อมูลบางส่วน ควรเพิ่มเติม' : 'ฉลากยังขาดข้อมูลสำคัญ'}</div>
+      </div>
+    </div>
+    <div class="analysis-grid">`;
+
+  result.items.forEach((item, idx) => {
+    const icon = item.status==="pass"?"✅":item.status==="warn"?"⚠️":"❌";
+    html += `<div class="analysis-item ${item.status}" style="animation-delay:${idx*0.06}s">
+      <div class="analysis-icon">${icon}</div>
+      <div class="analysis-content">
+        <div class="analysis-label">${item.label}</div>
+        <div class="analysis-detail">${item.detail}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div>`;
+
+  if (result.recs.length > 0) {
+    html += `<div class="result-box result-warn" style="margin-top:14px;">
+      <strong>📋 ข้อแนะนำการปรับปรุง (${result.recs.length} รายการ):</strong>
+      <ul style="margin-top:8px;padding-left:18px;line-height:1.9;">${result.recs.map(r=>`<li>${r}</li>`).join("")}</ul>
+    </div>`;
+  } else {
+    html += `<div class="result-box result-pass" style="margin-top:14px;">🎉 ฉลากผ่านการตรวจสอบครบทุกรายการ!</div>`;
+  }
+
+  document.getElementById("imageResult").innerHTML = html;
+}
+
+/* ============================================================
+   STAR RATING
+   ============================================================ */
+const RATING_LABELS = ["", "ควรปรับปรุง 😔", "พอใช้ได้ 😐", "ดี 🙂", "ดีมาก 😊", "ยอดเยี่ยม! 🤩"];
+function setRating(r) {
+  rating = r;
+  document.querySelectorAll(".star-btn").forEach((s,i) => {
+    s.className = "star-btn" + (i < r ? " active" : "");
+  });
+  document.getElementById("ratingLabel").textContent = RATING_LABELS[r] || "";
+}
+
+/* ============================================================
+   SUBMIT FEEDBACK
+   ============================================================ */
+async function submitFeedback() {
+  const name = document.getElementById("fb_name").value.trim();
+  const contact = document.getElementById("fb_contact").value.trim();
+  const product = document.getElementById("fb_product").value.trim();
+  const fb = document.getElementById("feedback").value.trim();
+
+  if (rating === 0) { showToast("⚠️ กรุณาให้คะแนนความพึงพอใจ"); return; }
+
+  const btn = document.getElementById("fbBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+  const token = localStorage.getItem('cosme_token');
+  try {
+    const res = await fetch((window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + '/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+      },
+      body: JSON.stringify({ name, contact, product, rating, comment: fb })
+    });
+    
+    if (!res.ok) throw new Error('API Error');
+  } catch(e) {
+    // Save to local fallback if API fails
+    const records = JSON.parse(localStorage.getItem("cosme_feedback") || "[]");
+    records.push({ name, contact, product, rating, feedback: fb, date: new Date().toLocaleString("th-TH") });
+    localStorage.setItem("cosme_feedback", JSON.stringify(records));
+  }
+
+  setTimeout(() => {
+    document.getElementById("fb-status").innerHTML = `
+      <div class="result-box result-pass" style="margin-bottom:10px;">
+        ✅ ขอบคุณสำหรับข้อมูล! ให้คะแนน ${rating} ดาว ⭐<br>
+        <small style="opacity:0.7;">บันทึกสำเร็จเรียบร้อยแล้ว</small>
+      </div>`;
+    btn.disabled = false;
+    btn.innerHTML = '📨 ส่งข้อมูลความพึงพอใจ';
+    // Reset
+    document.getElementById("fb_name").value = "";
+    document.getElementById("fb_contact").value = "";
+    document.getElementById("fb_product").value = "";
+    document.getElementById("feedback").value = "";
+    rating = 0;
+    document.querySelectorAll(".star-btn").forEach(s => s.className = "star-btn");
+    document.getElementById("ratingLabel").textContent = "";
+    showToast("⭐ บันทึกความพึงพอใจแล้ว ขอบคุณ!");
+  }, 900);
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener("DOMContentLoaded", () => {
+
+  /* ---- SESSION: Populate user bar ---- */
+  const sess = JSON.parse(localStorage.getItem('cosme_session') || '{}');
+  if (sess.firstName) {
+    const initial = (sess.firstName || 'U')[0].toUpperCase();
+    document.getElementById('ubar-avatar').textContent = initial;
+    document.getElementById('ubar-name').textContent = `${sess.firstName} ${sess.lastName || ''}`;
+    document.getElementById('ubar-biz').textContent = sess.businessName || 'ผู้ประกอบการ';
+    document.getElementById('ubar-province').textContent = sess.province || 'สสจ.ศรีสะเกษ';
+    // Show admin link if admin role
+    if (sess.role === 'admin') {
+      document.getElementById('ubar-admin-link').style.display = 'flex';
+    }
+    // Auto-fill feedback fields from session
+    const fbName = document.getElementById('fb_name');
+    if (fbName && !fbName.value) {
+      fbName.value = `${sess.firstName} ${sess.lastName || ''}`.trim();
+    }
+    const fbContact = document.getElementById('fb_contact');
+    if (fbContact && !fbContact.value) {
+      fbContact.value = sess.email || '';
+    }
+  }
+
+  // Drag-and-drop support
+  const zone = document.getElementById("uploadZone");
+  if (zone) {
+    zone.addEventListener("dragover", e => { e.preventDefault(); zone.style.borderColor = "var(--blue-400)"; });
+    zone.addEventListener("dragleave", () => { zone.style.borderColor = ""; });
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.style.borderColor = "";
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = document.getElementById("preview-img");
+          img.src = ev.target.result;
+          img.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+        document.getElementById("checkBtn").disabled = false;
+        setStep(1,"done"); setStep(2,""); setStep(3,"");
+        document.getElementById("imageResult").innerHTML = "";
+        ocrText = "";
+      }
+    });
+  }
+});
+
+/* ---- LOGOUT ---- */
+async function doLogout() {
+  if (!confirm('ออกจากระบบ?')) return;
+  const token = localStorage.getItem('cosme_token');
+  if (token) {
+    try {
+      await fetch((window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + '/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    } catch(e) {}
+  }
+  localStorage.removeItem('cosme_token');
+  localStorage.removeItem('cosme_session');
+  window.location.replace('login.html');
+}
+</script>
+</body>
+</html>

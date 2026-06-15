@@ -1,0 +1,23 @@
+{
+  "name": "smart-cosme-api",
+  "version": "1.0.0",
+  "description": "Smart Cosme Backend API - สสจ.ศรีสะเกษ",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "seed": "node seed.js",
+    "studio": "npx prisma studio",
+    "db:push": "npx prisma db push",
+    "db:reset": "npx prisma migrate reset --force && node seed.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.22.0"
+  }
+}

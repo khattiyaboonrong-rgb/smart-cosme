@@ -1,0 +1,13 @@
+{
+  "name": "smart-cosme-antigravity",
+  "version": "1.0.0",
+  "description": "Smart Cosme Label Verification App",
+  "scripts": {
+    "install": "cd server && npm install",
+    "build": "cd server && npm install && npx prisma generate",
+    "start": "cd server && node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
