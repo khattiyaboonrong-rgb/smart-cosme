@@ -718,9 +718,9 @@ body::after {
   background: rgba(37,99,235,0.1);
 }
 .upload-zone input[type="file"] {
-  position: absolute; inset: 0;
-  opacity: 0; cursor: pointer;
-  width: 100%; height: 100%;
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); border: 0;
 }
 .upload-icon-big { font-size: 2.8rem; margin-bottom: 10px; }
 .upload-text-main { font-weight: 600; color: var(--blue-300); margin-bottom: 4px; }
@@ -1175,12 +1175,12 @@ body::after {
         <div class="step-item" id="step3"><div class="step-num" id="s3">3</div><span>Smart AI วิเคราะห์ตาม พ.ร.บ. เครื่องสำอาง</span></div>
       </div>
 
-      <div class="upload-zone" id="uploadZone">
+      <label class="upload-zone" id="uploadZone" for="imageInput" style="display:block;">
         <input type="file" id="imageInput" accept="image/*" onchange="onFileChange(event)" aria-label="อัปโหลดรูปภาพฉลาก">
         <div class="upload-icon-big">📷</div>
         <div class="upload-text-main">คลิกหรือลากรูปมาวางที่นี่</div>
         <div class="upload-text-sub">รองรับ JPG, PNG, WEBP, HEIC — ขนาดสูงสุด 10 MB</div>
-      </div>
+      </label>
 
       <img id="preview-img" alt="ตัวอย่างรูปภาพฉลากที่อัปโหลด">
 
