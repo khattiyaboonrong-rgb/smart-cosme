@@ -268,7 +268,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.6;}
     <!-- ========== USERS ========== -->
     <div class="panel" id="panel-users">
       <div class="search-bar">
-        <input type="text" class="fi" id="search-input" placeholder="🔍 ค้นหาชื่อ, อีเมล, กิจการ..." oninput="searchDebounce()">
+        <input type="text" class="fi" id="search-input" placeholder="🔍 ค้นหาชื่อ, อีเมล, กิจการ..." oninput="searchDebounce()" autocomplete="off" name="cosme_search_query">
         <select class="fs" id="filter-province" onchange="loadUsers()">
           <option value="">ทุกจังหวัด</option>
         </select>
