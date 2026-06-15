@@ -673,7 +673,7 @@ async function apiFetch(path, opts = {}) {
     });
     return { ok: res.ok, status: res.status, data: await res.json() };
   } catch (e) {
-    return { ok: false, status: 0, data: { error: '❌ ไม่สามารถเชื่อมต่อ Server ได้ กรุณาตรวจสอบว่า Backend รันอยู่ที่ localhost:3000' } };
+    return { ok: false, status: 0, data: { error: '❌ ไม่สามารถเชื่อมต่อ Server ได้ กรุณาตรวจสอบว่า Backend รันอยู่ที่ localhost:3001' } };
   }
 }
 
