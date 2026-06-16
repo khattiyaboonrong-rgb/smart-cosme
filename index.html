@@ -2970,7 +2970,11 @@ async function renderFdaCheckResult(num) {
     }
 
     const statusText = (data.cncnm || "").trim();
-    const isActive = statusText === "คงอยู่" || statusText.toUpperCase() === "ACTIVE";
+    // Active keywords used in Thai FDA
+    const activeKeywords = ["คงอยู่", "อนุมัติ", "active", "approved"];
+    const isActive = activeKeywords.some(keyword => statusText.toLowerCase().includes(keyword));
+    const displayStatusText = statusText || "ไม่ระบุสถานะ";
+    const pillIcon = isActive ? "✅" : "🚫";
 
     resultSec.innerHTML = `
       ${nameMatchAlert}
@@ -2992,8 +2996,8 @@ async function renderFdaCheckResult(num) {
             <h3 style="font-size:1.2rem; font-weight:800; color:#0f172a; margin-top:2px;">ข้อมูลใบรับจดแจ้งเครื่องสำอาง (อย.)</h3>
           </div>
           <div style="text-align:right;">
-            <span style="display:inline-block; padding:4px 12px; border-radius:99px; font-size:0.75rem; font-weight:700; border:1px solid; ${isActive ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fff1f2; color:#be123c; border-color:#fecdd3;'}">
-              ${isActive ? '✅ ใบรับจดแจ้งมีผลอยู่ (คงอยู่)' : `🚫 สถานะ: ${statusText || 'สิ้นอายุ/ยกเลิก'}`}
+            <span style="display:inline-block; padding:6px 14px; border-radius:99px; font-size:0.75rem; font-weight:700; border:1px solid; ${isActive ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fff1f2; color:#be123c; border-color:#fecdd3;'}">
+              ${pillIcon} ${displayStatusText}
             </span>
           </div>
         </div>
