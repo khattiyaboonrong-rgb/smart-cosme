@@ -1338,9 +1338,9 @@ body::after {
       <!-- Manual Input Section -->
       <div id="fdaManualInputSection" style="display:none; margin-top:20px; padding:16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--radius-md);">
         <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:8px;">ระบุเลขที่ใบรับจดแจ้งเครื่องสำอาง (10 หลัก หรือ 13 หลัก):</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="fdaManualInput" class="form-input" style="flex:1;" placeholder="เช่น 10-1-6200000 หรือ 1016200000">
-          <button class="btn btn-success" onclick="searchFdaNumberDirect()">ค้นหาข้อมูล</button>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <input type="text" id="fdaManualInput" class="form-input" style="width:100%; box-sizing:border-box;" placeholder="เช่น 10-1-6200000 หรือ 1016200000">
+          <button class="btn btn-success" style="width:100%; margin:0;" onclick="searchFdaNumberDirect()">ค้นหาข้อมูล</button>
         </div>
       </div>
 
