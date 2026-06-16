@@ -3101,6 +3101,7 @@ async function searchFdaNumberDirect() {
 
 <!-- Floating Line OA Chat Button (OSSC FDA ศรีสะเกษ) -->
 <a href="https://line.me/R/ti/p/%40669gpcbr" target="_blank" rel="noopener noreferrer" class="cosme-floating-chat" aria-label="แชทติดต่อสอบถาม สสจ. ศรีสะเกษ">
+  <div class="chat-label-above">ติดต่อสอบถาม</div>
   <div class="chat-tooltip">สอบถามข้อมูล สสจ. (OSSC)</div>
   <div class="chat-pulse"></div>
   <div class="chat-icon-container">
@@ -3111,6 +3112,46 @@ async function searchFdaNumberDirect() {
 </a>
 
 <style>
+  .chat-label-above {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #f43f5e, #ec4899);
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 0.64rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(244, 63, 94, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-family: 'Prompt', sans-serif;
+    animation: labelBounce 2s infinite ease-in-out;
+  }
+
+  .chat-label-above::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0;
+    border-style: solid;
+    border-color: #ec4899 transparent transparent;
+    display: block;
+    width: 0;
+  }
+
+  @keyframes labelBounce {
+    0%, 100% {
+      transform: translateX(-50%) translateY(0);
+    }
+    50% {
+      transform: translateX(-50%) translateY(-5px);
+    }
+  }
+
   .cosme-floating-chat {
     position: fixed;
     bottom: 24px;
