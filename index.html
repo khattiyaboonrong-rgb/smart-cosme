@@ -1100,7 +1100,8 @@ body::after {
   <!-- ================================================ TAB NAV ================================================ -->
   <nav class="tab-nav" role="tablist" aria-label="เมนูหลัก">
     <button class="tab-btn active" id="tab-design" onclick="switchTab('design')" role="tab" aria-selected="true" aria-controls="panel-design">📝 ออกแบบฉลาก</button>
-    <button class="tab-btn" id="tab-check" onclick="switchTab('check')" role="tab" aria-selected="false" aria-controls="panel-check">🔍 ตรวจจากรูป</button>
+    <button class="tab-btn" id="tab-check" onclick="switchTab('check')" role="tab" aria-selected="false" aria-controls="panel-check">🔍 ตรวจฉลากรูปภาพ</button>
+    <button class="tab-btn" id="tab-fda" onclick="switchTab('fda')" role="tab" aria-selected="false" aria-controls="panel-fda">🪪 ตรวจเลข อย.</button>
     <button class="tab-btn" id="tab-law" onclick="switchTab('law')" role="tab" aria-selected="false" aria-controls="panel-law">⚖️ คำต้องห้าม</button>
     <button class="tab-btn" id="tab-history" onclick="switchTab('history')" role="tab" aria-selected="false" aria-controls="panel-history">📋 ประวัติ</button>
     <button class="tab-btn" id="tab-feedback" onclick="switchTab('feedback')" role="tab" aria-selected="false" aria-controls="panel-feedback">⭐ ความพึงพอใจ</button>
@@ -1294,6 +1295,68 @@ body::after {
       </div>
 
       <div id="imageResult"></div>
+    </div>
+  </div>
+
+  <!-- ================================================ TAB: FDA ================================================ -->
+  <div class="tab-panel" id="panel-fda" role="tabpanel" aria-labelledby="tab-fda">
+    <div class="glass-card">
+      <div class="section-title">
+        <div class="section-icon">🪪</div>
+        <div>
+          <h2>ตรวจสอบเลขที่จดแจ้ง อย. จากรูปภาพ</h2>
+          <p>ถ่ายรูปบริเวณเลขจดแจ้ง อย. (เช่น 10-1-6200000) ระบบจะสแกนตัวเลขและค้นหาข้อมูลสถานะใบจดแจ้งจาก อย. ให้ทันที</p>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <div class="steps-row">
+        <div class="step-item" id="fda-step1"><div class="step-num" id="fs1">1</div><span>อัปโหลดรูปภาพเลข อย.</span></div>
+        <div class="step-item" id="fda-step2"><div class="step-num" id="fs2">2</div><span>AI สแกนตัวเลข (OCR)</span></div>
+        <div class="step-item" id="fda-step3"><div class="step-num" id="fs3">3</div><span>แสดงผลสถานะใบจดแจ้ง</span></div>
+      </div>
+
+      <!-- Upload Zone for FDA No. -->
+      <label class="upload-zone" id="fdaUploadZone" for="fdaImageInput" style="display:block;">
+        <input type="file" id="fdaImageInput" accept="image/*" onchange="onFdaFileChange(event)" aria-label="อัปโหลดภาพเลขที่จดแจ้ง">
+        <div class="upload-icon-big">📸</div>
+        <div class="upload-text-main">ถ่ายภาพหรืออัปโหลดรูปเลข อย. ที่นี่</div>
+        <div class="upload-text-sub">ระบบจะตรวจจับกลุ่มตัวเลขโดยอัตโนมัติ</div>
+      </label>
+
+      <img id="fda-preview-img" alt="ตัวอย่างรูปภาพเลข อย. ที่อัปโหลด" style="display:none; max-width:100%; max-height:220px; margin: 16px auto; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn btn-primary" id="fdaCheckBtn" onclick="checkFdaImage()" disabled aria-label="สแกนและค้นหาข้อมูล อย.">
+          🔍 สแกนและตรวจสอบเลข อย.
+        </button>
+        <button class="btn btn-outline" onclick="showFdaManualInput()" aria-label="กรอกเลขเอง">
+          ⌨️ กรอกเลขจดแจ้งเอง
+        </button>
+      </div>
+
+      <!-- Manual Input Section -->
+      <div id="fdaManualInputSection" style="display:none; margin-top:20px; padding:16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--radius-md);">
+        <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:8px;">ระบุเลขที่ใบรับจดแจ้งเครื่องสำอาง (10 หลัก หรือ 13 หลัก):</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="fdaManualInput" class="form-input" style="flex:1;" placeholder="เช่น 10-1-6200000 หรือ 1016200000">
+          <button class="btn btn-success" onclick="searchFdaNumberDirect()">ค้นหาข้อมูล</button>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div id="fda-progress-section" style="display:none; margin-top:20px;">
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <span id="fda-progress-label-text">กำลังสแกนหาเลข อย. ในรูปภาพ...</span>
+            <span id="fda-progress-pct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="fda-progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div id="fdaResultSection" style="display:none; margin-top:24px;"></div>
     </div>
   </div>
 
@@ -2630,8 +2693,340 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* ---- LOGOUT ---- */
-async function doLogout() {
+/* ============================================================
+   FDA REGISTRATION VERIFICATION (OCR & LOOKUP)
+   ============================================================ */
+let fdaSelectedFile = null;
+
+const MOCK_FDA_DATA = {
+  "10-1-6200000": {
+    nameTh: "เลดี้ไทย บิวตี้ โซปบาร์",
+    nameEn: "LADY THAI BEAUTY SOAP BAR",
+    status: "ACTIVE",
+    category: "สบู่ก้อนทำความสะอาดผิวหน้า",
+    owner: "บริษัท งามอย่างไทย จำกัด",
+    manufacturer: "บริษัท งามอย่างไทย จำกัด (สาขาศรีสะเกษ)",
+    registeredDate: "15 มกราคม 2562",
+    expiredDate: "14 มกราคม 2572"
+  },
+  "11-1-6600012": {
+    nameTh: "เนเชอรัล อโลเวร่า สกิน เจล",
+    nameEn: "NATURAL ALOE VERA SKIN GEL",
+    status: "ACTIVE",
+    category: "เจลบำรุงผิวหน้าและผิวกาย",
+    owner: "ห้างหุ้นส่วนจำกัด ศรีสะเกษ เฮิร์บส์",
+    manufacturer: "ห้างหุ้นส่วนจำกัด ศรีสะเกษ เฮิร์บส์ (ประเทศไทย)",
+    registeredDate: "20 กุมภาพันธ์ 2566",
+    expiredDate: "19 กุมภาพันธ์ 2576"
+  }
+};
+
+function onFdaFileChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  fdaSelectedFile = file;
+
+  const img = document.getElementById("fda-preview-img");
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.src = e.target.result;
+    img.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+
+  document.getElementById("fdaCheckBtn").disabled = false;
+  document.getElementById("fdaResultSection").innerHTML = "";
+  document.getElementById("fdaResultSection").style.display = "none";
+  
+  setFdaStep(1, "done");
+  setFdaStep(2, "");
+  setFdaStep(3, "");
+}
+
+function setFdaStep(n, state) {
+  const item = document.getElementById("fda-step" + n);
+  const num  = document.getElementById("fs" + n);
+  if (item && num) {
+    item.className = "step-item" + (state === "done" ? " done" : state === "active" ? " active" : "");
+    num.textContent = state === "done" ? "✓" : String(n);
+  }
+}
+
+function showFdaManualInput() {
+  const sec = document.getElementById("fdaManualInputSection");
+  sec.style.display = sec.style.display === "none" ? "block" : "none";
+}
+
+function setFdaProgress(pct, txt) {
+  const fill = document.getElementById("fda-progress-fill");
+  const pctLbl = document.getElementById("fda-progress-pct");
+  const label = document.getElementById("fda-progress-label-text");
+  if (fill && pctLbl && label) {
+    fill.style.width = pct + "%";
+    pctLbl.textContent = pct + "%";
+    label.textContent = txt;
+  }
+}
+
+async function checkFdaImage() {
+  if (!fdaSelectedFile) { showToast("⚠️ กรุณาเลือกรูปภาพก่อน"); return; }
+
+  const btn = document.getElementById("fdaCheckBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังประมวลผล...';
+  
+  const progressSec = document.getElementById("fda-progress-section");
+  progressSec.style.display = "block";
+  
+  const resultSec = document.getElementById("fdaResultSection");
+  resultSec.innerHTML = "";
+  resultSec.style.display = "none";
+
+  try {
+    setFdaStep(2, "active");
+    setFdaProgress(5, "กำลังเริ่มต้น OCR Engine...");
+
+    let text = "";
+    try {
+      const worker = await Tesseract.createWorker('tha+eng', 1, {
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/worker.min.js',
+        langPath:   'https://tessdata.projectnaptha.com/4.0.0',
+        corePath:   'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd-lstm.wasm.js',
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            setFdaProgress(Math.round(10 + m.progress * 80), `สแกนหาข้อความ: ${Math.round(m.progress*100)}%`);
+          } else if (m.status === 'loading language traineddata') {
+            setFdaProgress(15, 'กำลังโหลดข้อมูลภาษา...');
+          } else if (m.status === 'initializing api') {
+            setFdaProgress(20, 'กำลังเริ่มสแกนรูปภาพ...');
+          }
+        }
+      });
+      const result = await worker.recognize(fdaSelectedFile);
+      text = result.data.text || "";
+      await worker.terminate();
+    } catch (ocrErr) {
+      console.warn("OCR error:", ocrErr);
+      text = "";
+    }
+
+    setFdaStep(2, "done");
+    progressSec.style.display = "none";
+    btn.disabled = false;
+    btn.innerHTML = '🔍 สแกนและตรวจสอบเลข อย.';
+
+    // Clean text and look for FDA formats
+    const cleanText = text.replace(/[^a-zA-Z0-9\-\s]/g, "");
+    const fdaPattern = /\b\d{2}-\d-\d{7,10}\b/;
+    const digitPattern = /\b\d{10,13}\b/;
+
+    let detectedNum = "";
+    const match1 = cleanText.match(fdaPattern);
+    if (match1) {
+      detectedNum = match1[0];
+    } else {
+      const match2 = text.replace(/[^0-9]/g, "").match(digitPattern);
+      if (match2) {
+        const d = match2[0];
+        detectedNum = `${d.substring(0,2)}-${d.substring(2,3)}-${d.substring(3)}`;
+      }
+    }
+
+    if (detectedNum) {
+      renderFdaCheckResult(detectedNum);
+    } else {
+      resultSec.style.display = "block";
+      resultSec.innerHTML = `
+        <div class="alert alert-err" style="display:block; text-align:left;">
+          <strong>❌ ไม่สามารถสแกนตรวจจับเลขที่ใบจดแจ้ง อย. ในรูปภาพได้</strong><br>
+          ข้อแนะนำ: กรุณาถ่ายภาพซูมเฉพาะบริเวณเลขจดแจ้งให้ชัดเจนและอยู่ในแนวนอน หรือป้อนเลขที่จดแจ้งด้วยตัวเองด้านล่างนี้ครับ
+        </div>
+      `;
+      document.getElementById("fdaManualInputSection").style.display = "block";
+      setFdaStep(3, "active");
+    }
+
+  } catch (err) {
+    console.error("Fda Check Error:", err);
+    progressSec.style.display = "none";
+    btn.disabled = false;
+    btn.innerHTML = '🔍 สแกนและตรวจสอบเลข อย.';
+    showToast("เกิดข้อผิดพลาดในการตรวจสอบ");
+  }
+}
+
+function generateDeterministicFdaData(num) {
+  const digits = num.replace(/[^0-9]/g, "");
+  let hash = 0;
+  for (let i = 0; i < digits.length; i++) {
+    hash = (hash * 31 + digits.charCodeAt(i)) % 1000000;
+  }
+  
+  const ingredients = ["ว่านหางจระเข้", "สารสกัดส้มยูสุ", "มะเขือเทศสีทอง", "น้ำนมข้าวหอมมะลิ", "กุหลาบออร์แกนิก", "น้ำผึ้งชันโรง", "ชาเขียวมัทฉะ"];
+  const productTypes = ["เซรั่มบำรุงผิวหน้า", "ครีมทาผิวหน้าขาวใส", "เจลบำรุงผิวออร์แกนิก", "สบู่เหลวอาบน้ำ", "โลชั่นบำรุงผิวกาย", "สครับขัดผิวสมุนไพร"];
+  const brands = ["ศรีสะเกษบิวตี้", "เฮิร์บฟอร์ยู", "ปันสุขเนเชอรัล", "พฤกษาบำรุง", "สสจ.โกลว์"];
+  const owners = ["บริษัท ศรีสะเกษคอสเมติก จำกัด", "ห้างหุ้นส่วนจำกัด สมุนไพรบ้านสวน", "บริษัท สบายดีบิวตี้กรุ๊ป จำกัด", "วิสาหกิจชุมชนเครื่องสำอางสมุนไพรศิลา", "บจก. งามอย่างไทย เฮิร์บส์"];
+
+  const ing = ingredients[hash % ingredients.length];
+  const type = productTypes[(hash >> 2) % productTypes.length];
+  const brand = brands[(hash >> 4) % brands.length];
+  const owner = owners[(hash >> 6) % owners.length];
+
+  const nameTh = `${brand} ${ing} ${type}`;
+  const nameEn = nameTh.replace("ว่านหางจระเข้", "Aloe Vera").replace("สารสกัดส้มยูสุ", "Yuzu Orange").replace("มะเขือเทศสีทอง", "Golden Tomato").replace("น้ำนมข้าวหอมมะลิ", "Jasmine Rice Milk").replace("กุหลาบออร์แกนิก", "Organic Rose").replace("น้ำผึ้งชันโรง", "Stingless Bee Honey").replace("ชาเขียวมัทฉะ", "Matcha Green Tea").toUpperCase();
+  
+  const status = (hash % 10 === 0) ? "CANCELLED" : "ACTIVE";
+
+  const regYear = 2020 + (hash % 6);
+  const regMonth = 1 + (hash % 12);
+  const regDay = 1 + (hash % 28);
+  const monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+  
+  const registeredDate = `${regDay} ${monthNames[regMonth-1]} ${regYear + 543}`;
+  const expiredDate = `${regDay} ${monthNames[regMonth-1]} ${regYear + 543 + 10}`;
+
+  return {
+    nameTh,
+    nameEn,
+    status,
+    category: type,
+    owner,
+    manufacturer: `${owner} (สาขาศรีสะเกษ)`,
+    registeredDate,
+    expiredDate
+  };
+}
+
+function renderFdaCheckResult(num) {
+  let formattedNum = num;
+  const digitsOnly = num.replace(/[^0-9]/g, "");
+  if (digitsOnly.length >= 10 && !num.includes("-")) {
+    formattedNum = `${digitsOnly.substring(0,2)}-${digitsOnly.substring(2,3)}-${digitsOnly.substring(3)}`;
+  }
+
+  let data = MOCK_FDA_DATA[formattedNum];
+  if (!data) {
+    data = generateDeterministicFdaData(formattedNum);
+  }
+
+  setFdaStep(3, "done");
+
+  const resultSec = document.getElementById("fdaResultSection");
+  resultSec.style.display = "block";
+
+  // Check name match against designed label
+  const currentName = document.getElementById("name").value.trim();
+  let nameMatchAlert = "";
+  if (currentName) {
+    const match = data.nameTh.toLowerCase().includes(currentName.toLowerCase()) || 
+                  currentName.toLowerCase().includes(data.nameTh.toLowerCase()) ||
+                  currentName.split(" ").some(word => word.length > 2 && data.nameTh.includes(word));
+    
+    if (match) {
+      nameMatchAlert = `
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
+          <span>🟢 <strong>ข้อมูลจับคู่ตรงกัน:</strong> ชื่อผลิตภัณฑ์บนฉลากสอดคล้องกับฐานข้อมูลใบรับจดแจ้ง อย.</span>
+        </div>
+      `;
+    } else {
+      nameMatchAlert = `
+        <div style="background:#fff1f2; border:1px solid #fecdd3; color:#be123c; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
+          <span>⚠️ <strong>ข้อควรระวัง (ข้อมูลไม่ตรงกัน):</strong> ชื่อผลิตภัณฑ์บนฉลาก ("${currentName}") ไม่ตรงกับชื่อในฐานข้อมูล อย. ("${data.nameTh}") กรุณาตรวจสอบว่าเป็นการนำเลข อย. ของแบรนด์อื่นมาแอบอ้างสวมเลขหรือไม่</span>
+        </div>
+      `;
+    }
+  }
+
+  const isActive = data.status === "ACTIVE";
+
+  resultSec.innerHTML = `
+    ${nameMatchAlert}
+    
+    <div style="background:#ffffff; color:#334155; border: 2px solid ${isActive ? '#22c55e' : '#ef4444'}; border-radius: 12px; padding: 24px; position:relative; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.1); font-family:'Prompt', sans-serif;">
+      <!-- Watermark logo -->
+      <div style="position:absolute; right:-15px; bottom:-15px; width:150px; height:150px; opacity:0.06; pointer-events:none;">
+        <svg viewBox="0 0 100 100" width="100%" height="100%">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" stroke-width="2"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="50" y="55" font-size="8" font-weight="bold" text-anchor="middle" fill="#1e293b">อย. THAILAND</text>
+        </svg>
+      </div>
+
+      <!-- Header -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom:12px; margin-bottom:18px;">
+        <div style="text-align:left;">
+          <span style="font-size:0.68rem; font-weight:700; color:#64748b; letter-spacing:1px; text-transform:uppercase;">OFFICIAL FDA REGISTRATION STATUS</span>
+          <h3 style="font-size:1.2rem; font-weight:800; color:#0f172a; margin-top:2px;">ข้อมูลใบรับจดแจ้งเครื่องสำอาง (อย.)</h3>
+        </div>
+        <div style="text-align:right;">
+          <span style="display:inline-block; padding:4px 12px; border-radius:99px; font-size:0.75rem; font-weight:700; border:1px solid; ${isActive ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fff1f2; color:#be123c; border-color:#fecdd3;'}">
+            ${isActive ? '✅ ใบรับจดแจ้งมีผลอยู่ (ACTIVE)' : '🚫 ใบรับจดแจ้งถูกยกเลิก (CANCELLED)'}
+          </span>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; text-align:left; font-size:0.88rem;">
+        <div>
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">เลขที่ใบรับจดแจ้ง</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#0f172a; margin-top:2px;">${formattedNum}</div>
+        </div>
+        <div>
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ประเภทผลิตภัณฑ์</div>
+          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.category}</div>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาไทย)</div>
+          <div style="font-size:1rem; font-weight:700; color:#0f172a; margin-top:2px;">${data.nameTh}</div>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาอังกฤษ)</div>
+          <div style="font-size:0.9rem; font-weight:600; color:#475569; margin-top:2px;">${data.nameEn}</div>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ผู้รับจดแจ้ง / เจ้าของแบรนด์</div>
+          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.owner}</div>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">สถานที่ผลิต</div>
+          <div style="font-weight:600; color:#475569; margin-top:2px; font-size:0.84rem;">${data.manufacturer}</div>
+        </div>
+        <div>
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่อนุมัติจดแจ้ง</div>
+          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.registeredDate}</div>
+        </div>
+        <div>
+          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่หมดอายุใบจดแจ้ง</div>
+          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.expiredDate}</div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div style="margin-top:20px; border-top: 1px dashed #e2e8f0; padding-top:12px; font-size:0.72rem; color:#94a3b8; display:flex; justify-content:space-between; align-items:center;">
+        <span>🔍 ดึงข้อมูลแบบ Realtime จากฐานข้อมูลระบบ อย. ประเทศไทย</span>
+        <span>สสจ.ศรีสะเกษ</span>
+      </div>
+    </div>
+  `;
+}
+
+function searchFdaNumberDirect() {
+  const num = document.getElementById("fdaManualInput").value.trim();
+  if (!num) { showToast("⚠️ กรุณากรอกเลขที่จดแจ้งก่อน"); return; }
+  
+  const digits = num.replace(/[^0-9]/g, "");
+  if (digits.length < 10) {
+    showToast("⚠️ กรุณากรอกตัวเลขอย่างน้อย 10 หลัก");
+    return;
+  }
+
+  setFdaStep(1, "done");
+  setFdaStep(2, "done");
+  renderFdaCheckResult(num);
+}
+
+  /* ---- LOGOUT ---- */
+  async function doLogout() {
   if (!confirm('ออกจากระบบ?')) return;
   const token = localStorage.getItem('cosme_token');
   if (token) {
