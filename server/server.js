@@ -12,6 +12,7 @@ const cors       = require('cors');
 const path       = require('path');
 const bcrypt     = require('bcrypt');
 const jwt        = require('jsonwebtoken');
+const https      = require('https');
 const { PrismaClient } = require('@prisma/client');
 
 const app    = express();
@@ -386,6 +387,159 @@ app.post('/api/admin/change-password', requireAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
+  }
+});
+
+/* ============================================================
+   FDA LOOKUP PROXY (LIVE SCRAPING)
+   ============================================================ */
+function getJson(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    https.get(url, options, (res) => {
+      let data = '';
+      res.on('data', (c) => data += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch(e) { reject(new Error(`Failed to parse JSON: ${e.message} \nRaw: ${data}`)); }
+      });
+    }).on('error', reject);
+  });
+}
+
+function postJson(url, payload) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify(payload);
+    const req = https.request(url, {
+      method: 'POST',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => data += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch(e) { reject(new Error(`Failed to parse JSON: ${e.message} \nRaw: ${data}`)); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// GET /api/fda/check?number=...
+app.get('/api/fda/check', async (req, res) => {
+  try {
+    const inputNumber = req.query.number;
+    if (!inputNumber) {
+      return res.status(400).json({ error: 'กรุณาระบุเลขที่จดแจ้ง อย.' });
+    }
+
+    // Clean inputs: keep numbers, letters, and dashes
+    const cleanedKeyword = inputNumber.replace(/[^a-zA-Z0-9\-]/g, "").trim();
+    if (cleanedKeyword.length < 5) {
+      return res.status(400).json({ error: 'เลขที่จดแจ้งสั้นเกินไป' });
+    }
+
+    // 1. Search on Oryor
+    const searchUrl = `https://api.oryor.com/productSerial/search?keyword=${encodeURIComponent(cleanedKeyword)}`;
+    const searchOptions = {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'X-Authorization': 'keeneye',
+        'Origin': 'https://oryor.com',
+        'Referer': 'https://oryor.com/'
+      }
+    };
+
+    let searchResult;
+    try {
+      searchResult = await getJson(searchUrl, searchOptions);
+    } catch (searchErr) {
+      console.error('Oryor search error:', searchErr.message);
+      return res.status(502).json({ error: 'ไม่สามารถเชื่อมต่อฐานข้อมูลสืบค้นของ อย. ได้' });
+    }
+
+    if (!searchResult || searchResult.length === 0) {
+      return res.json({ success: false, message: 'ไม่พบข้อมูลใบจดแจ้งในฐานข้อมูล อย.' });
+    }
+
+    // Use the first match
+    const bestMatch = searchResult[0];
+
+    // Fallback template
+    const fallbackData = {
+      success: true,
+      source: 'search_only',
+      lcnno: bestMatch.lcnno,
+      productha: bestMatch.productha,
+      produceng: bestMatch.produceng,
+      typepro: bestMatch.typepro,
+      cncnm: bestMatch.cncnm,
+      licen: bestMatch.licen,
+      thanm: bestMatch.thanm,
+      Addr: bestMatch.Addr,
+      appDate: '-',
+      expDate: '-'
+    };
+
+    if (!bestMatch.URLs) {
+      return res.json(fallbackData);
+    }
+
+    // Parse regnos from URLs query parameter
+    const urlMatch = bestMatch.URLs.match(/[?&]regnos=([^&]+)/);
+    const regnos = urlMatch ? urlMatch[1] : null;
+
+    if (!regnos) {
+      return res.json(fallbackData);
+    }
+
+    // 2. Fetch detailed record from FDA
+    try {
+      const model = await getJson('https://cosmetica.fda.moph.go.th/CMT_SEARCH_BACK_NEW/Home/SET_MODEL');
+      model.M_SYSTEM_SETTING.FUNCTION_NAME = 'get_detail_regnos';
+      if (!model.datail_string) model.datail_string = {};
+      model.datail_string.regnos = regnos;
+
+      const detailRes = await postJson(
+        'https://cosmetica.fda.moph.go.th/CMT_SEARCH_BACK_NEW/Home/FUNCTION_CENTER',
+        { MODEL: model }
+      );
+
+      if (detailRes && detailRes.datail_string) {
+        const d = detailRes.datail_string;
+        return res.json({
+          success: true,
+          source: 'combined',
+          lcnno: d.lb_no_regnos || bestMatch.lcnno,
+          productha: d.lb_cosnm_Tpop ? `${d.lb_trade_Tpop} ${d.lb_cosnm_Tpop}`.trim() : bestMatch.productha,
+          produceng: d.lb_cosnm_Tpop2 ? `${d.lb_trade_Tpop2} ${d.lb_cosnm_Tpop2}`.trim() : bestMatch.produceng,
+          typepro: d.type_name || bestMatch.typepro,
+          cncnm: d.lb_status || bestMatch.cncnm,
+          licen: d.lb_usernm_pop || bestMatch.licen,
+          thanm: d.thanm || bestMatch.thanm,
+          Addr: d.lb_locat_pop || bestMatch.Addr,
+          appDate: d.lb_appdate || '-',
+          expDate: d.lb_expdate || '-'
+        });
+      }
+    } catch (detailErr) {
+      console.warn('FDA detail fetch error, falling back:', detailErr.message);
+    }
+
+    // Return fallback if detail query failed
+    return res.json({
+      ...fallbackData,
+      source: 'combined_fallback'
+    });
+
+  } catch (err) {
+    console.error('FDA Check endpoint error:', err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูล อย.' });
   }
 });
 

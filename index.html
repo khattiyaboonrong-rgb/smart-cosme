@@ -2833,7 +2833,7 @@ async function checkFdaImage() {
     }
 
     if (detectedNum) {
-      renderFdaCheckResult(detectedNum);
+      await renderFdaCheckResult(detectedNum);
     } else {
       resultSec.style.display = "block";
       resultSec.innerHTML = `
@@ -2897,120 +2897,170 @@ function generateDeterministicFdaData(num) {
   };
 }
 
-function renderFdaCheckResult(num) {
+async function renderFdaCheckResult(num) {
   let formattedNum = num;
   const digitsOnly = num.replace(/[^0-9]/g, "");
   if (digitsOnly.length >= 10 && !num.includes("-")) {
     formattedNum = `${digitsOnly.substring(0,2)}-${digitsOnly.substring(2,3)}-${digitsOnly.substring(3)}`;
   }
 
-  let data = MOCK_FDA_DATA[formattedNum];
-  if (!data) {
-    data = generateDeterministicFdaData(formattedNum);
-  }
-
-  setFdaStep(3, "done");
-
+  setFdaStep(3, "active");
   const resultSec = document.getElementById("fdaResultSection");
   resultSec.style.display = "block";
-
-  // Check name match against designed label
-  const currentName = document.getElementById("name").value.trim();
-  let nameMatchAlert = "";
-  if (currentName) {
-    const match = data.nameTh.toLowerCase().includes(currentName.toLowerCase()) || 
-                  currentName.toLowerCase().includes(data.nameTh.toLowerCase()) ||
-                  currentName.split(" ").some(word => word.length > 2 && data.nameTh.includes(word));
-    
-    if (match) {
-      nameMatchAlert = `
-        <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
-          <span>🟢 <strong>ข้อมูลจับคู่ตรงกัน:</strong> ชื่อผลิตภัณฑ์บนฉลากสอดคล้องกับฐานข้อมูลใบรับจดแจ้ง อย.</span>
-        </div>
-      `;
-    } else {
-      nameMatchAlert = `
-        <div style="background:#fff1f2; border:1px solid #fecdd3; color:#be123c; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
-          <span>⚠️ <strong>ข้อควรระวัง (ข้อมูลไม่ตรงกัน):</strong> ชื่อผลิตภัณฑ์บนฉลาก ("${currentName}") ไม่ตรงกับชื่อในฐานข้อมูล อย. ("${data.nameTh}") กรุณาตรวจสอบว่าเป็นการนำเลข อย. ของแบรนด์อื่นมาแอบอ้างสวมเลขหรือไม่</span>
-        </div>
-      `;
-    }
-  }
-
-  const isActive = data.status === "ACTIVE";
-
   resultSec.innerHTML = `
-    ${nameMatchAlert}
-    
-    <div style="background:#ffffff; color:#334155; border: 2px solid ${isActive ? '#22c55e' : '#ef4444'}; border-radius: 12px; padding: 24px; position:relative; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.1); font-family:'Prompt', sans-serif;">
-      <!-- Watermark logo -->
-      <div style="position:absolute; right:-15px; bottom:-15px; width:150px; height:150px; opacity:0.06; pointer-events:none;">
-        <svg viewBox="0 0 100 100" width="100%" height="100%">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" stroke-width="2"/>
-          <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="2,2"/>
-          <text x="50" y="55" font-size="8" font-weight="bold" text-anchor="middle" fill="#1e293b">อย. THAILAND</text>
-        </svg>
-      </div>
-
-      <!-- Header -->
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom:12px; margin-bottom:18px;">
-        <div style="text-align:left;">
-          <span style="font-size:0.68rem; font-weight:700; color:#64748b; letter-spacing:1px; text-transform:uppercase;">OFFICIAL FDA REGISTRATION STATUS</span>
-          <h3 style="font-size:1.2rem; font-weight:800; color:#0f172a; margin-top:2px;">ข้อมูลใบรับจดแจ้งเครื่องสำอาง (อย.)</h3>
-        </div>
-        <div style="text-align:right;">
-          <span style="display:inline-block; padding:4px 12px; border-radius:99px; font-size:0.75rem; font-weight:700; border:1px solid; ${isActive ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fff1f2; color:#be123c; border-color:#fecdd3;'}">
-            ${isActive ? '✅ ใบรับจดแจ้งมีผลอยู่ (ACTIVE)' : '🚫 ใบรับจดแจ้งถูกยกเลิก (CANCELLED)'}
-          </span>
-        </div>
-      </div>
-
-      <!-- Grid -->
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; text-align:left; font-size:0.88rem;">
-        <div>
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">เลขที่ใบรับจดแจ้ง</div>
-          <div style="font-size:1.1rem; font-weight:800; color:#0f172a; margin-top:2px;">${formattedNum}</div>
-        </div>
-        <div>
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ประเภทผลิตภัณฑ์</div>
-          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.category}</div>
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาไทย)</div>
-          <div style="font-size:1rem; font-weight:700; color:#0f172a; margin-top:2px;">${data.nameTh}</div>
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาอังกฤษ)</div>
-          <div style="font-size:0.9rem; font-weight:600; color:#475569; margin-top:2px;">${data.nameEn}</div>
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ผู้รับจดแจ้ง / เจ้าของแบรนด์</div>
-          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.owner}</div>
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">สถานที่ผลิต</div>
-          <div style="font-weight:600; color:#475569; margin-top:2px; font-size:0.84rem;">${data.manufacturer}</div>
-        </div>
-        <div>
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่อนุมัติจดแจ้ง</div>
-          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.registeredDate}</div>
-        </div>
-        <div>
-          <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่หมดอายุใบจดแจ้ง</div>
-          <div style="font-weight:600; color:#334155; margin-top:2px;">${data.expiredDate}</div>
-        </div>
-      </div>
-      
-      <!-- Footer -->
-      <div style="margin-top:20px; border-top: 1px dashed #e2e8f0; padding-top:12px; font-size:0.72rem; color:#94a3b8; display:flex; justify-content:space-between; align-items:center;">
-        <span>🔍 ดึงข้อมูลแบบ Realtime จากฐานข้อมูลระบบ อย. ประเทศไทย</span>
-        <span>สสจ.ศรีสะเกษ</span>
-      </div>
+    <div style="text-align:center; padding: 32px 16px;">
+      <span class="spinner" style="display:inline-block; margin-bottom:12px;"></span>
+      <div style="color:var(--text-secondary); font-size:0.9rem;">กำลังดึงข้อมูลใบจดแจ้งจริงแบบ Real-time จากระบบหลังบ้าน อย. ประเทศไทย...</div>
     </div>
   `;
+
+  try {
+    const backendUrl = (window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + `/api/fda/check?number=${encodeURIComponent(formattedNum)}`;
+    const response = await fetch(backendUrl);
+    
+    if (!response.ok) {
+      throw new Error("HTTP error " + response.status);
+    }
+    
+    const result = await response.json();
+    if (!result || !result.success) {
+      setFdaStep(3, "done");
+      resultSec.innerHTML = `
+        <div class="alert alert-err" style="display:block; text-align:left; font-family:'Prompt', sans-serif;">
+          <strong>❌ ไม่พบข้อมูลในฐานข้อมูลสืบค้นของ อย.</strong><br>
+          <span style="font-size:0.88rem; display:block; margin-top:6px; color:rgba(255,255,255,0.7)">
+            เลขที่จดแจ้งที่ตรวจสอบ: <strong>${formattedNum}</strong><br>
+            ข้อแนะนำ: กรุณาตรวจสอบความถูกต้องของตัวเลข หรือเครื่องสำอางรายการนี้ยังไม่ได้จดแจ้งเข้าระบบของ อย. ครับ
+          </span>
+        </div>
+      `;
+      return;
+    }
+
+    const data = result; // { lcnno, productha, produceng, typepro, cncnm, licen, thanm, Addr, appDate, expDate, source }
+
+    setFdaStep(3, "done");
+
+    // Check name match against designed label
+    const currentName = document.getElementById("name").value.trim();
+    let nameMatchAlert = "";
+    if (currentName) {
+      const cleanLabelName = currentName.toLowerCase().replace(/\s+/g, '');
+      const cleanFdaName = data.productha.toLowerCase().replace(/\s+/g, '');
+      const cleanFdaNameEng = (data.produceng || "").toLowerCase().replace(/\s+/g, '');
+      
+      const match = cleanFdaName.includes(cleanLabelName) || 
+                    cleanLabelName.includes(cleanFdaName) ||
+                    cleanFdaNameEng.includes(cleanLabelName) ||
+                    currentName.split(" ").some(word => word.length > 2 && (data.productha.includes(word) || (data.produceng && data.produceng.includes(word))));
+      
+      if (match) {
+        nameMatchAlert = `
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
+            <span>🟢 <strong>ข้อมูลจับคู่ตรงกัน:</strong> ชื่อผลิตภัณฑ์บนฉลากสอดคล้องกับฐานข้อมูลใบรับจดแจ้ง อย.</span>
+          </div>
+        `;
+      } else {
+        nameMatchAlert = `
+          <div style="background:#fff1f2; border:1px solid #fecdd3; color:#be123c; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
+            <span>⚠️ <strong>ข้อควรระวัง (ข้อมูลไม่ตรงกัน):</strong> ชื่อผลิตภัณฑ์บนฉลาก ("${currentName}") ไม่ตรงกับชื่อในฐานข้อมูล อย. ("${data.productha}") กรุณาตรวจสอบว่าเป็นการนำเลข อย. ของแบรนด์อื่นมาแอบอ้างสวมเลขหรือไม่</span>
+          </div>
+        `;
+      }
+    }
+
+    const statusText = (data.cncnm || "").trim();
+    const isActive = statusText === "คงอยู่" || statusText.toUpperCase() === "ACTIVE";
+
+    resultSec.innerHTML = `
+      ${nameMatchAlert}
+      
+      <div style="background:#ffffff; color:#334155; border: 2px solid ${isActive ? '#22c55e' : '#ef4444'}; border-radius: 12px; padding: 24px; position:relative; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.1); font-family:'Prompt', sans-serif;">
+        <!-- Watermark logo -->
+        <div style="position:absolute; right:-15px; bottom:-15px; width:150px; height:150px; opacity:0.06; pointer-events:none;">
+          <svg viewBox="0 0 100 100" width="100%" height="100%">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" stroke-width="2"/>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="2,2"/>
+            <text x="50" y="55" font-size="8" font-weight="bold" text-anchor="middle" fill="#1e293b">อย. THAILAND</text>
+          </svg>
+        </div>
+
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom:12px; margin-bottom:18px;">
+          <div style="text-align:left;">
+            <span style="font-size:0.68rem; font-weight:700; color:#64748b; letter-spacing:1px; text-transform:uppercase;">OFFICIAL FDA REGISTRATION STATUS</span>
+            <h3 style="font-size:1.2rem; font-weight:800; color:#0f172a; margin-top:2px;">ข้อมูลใบรับจดแจ้งเครื่องสำอาง (อย.)</h3>
+          </div>
+          <div style="text-align:right;">
+            <span style="display:inline-block; padding:4px 12px; border-radius:99px; font-size:0.75rem; font-weight:700; border:1px solid; ${isActive ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fff1f2; color:#be123c; border-color:#fecdd3;'}">
+              ${isActive ? '✅ ใบรับจดแจ้งมีผลอยู่ (คงอยู่)' : `🚫 สถานะ: ${statusText || 'สิ้นอายุ/ยกเลิก'}`}
+            </span>
+          </div>
+        </div>
+
+        <!-- Grid -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; text-align:left; font-size:0.88rem;">
+          <div>
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">เลขที่ใบรับจดแจ้ง</div>
+            <div style="font-size:1.1rem; font-weight:800; color:#0f172a; margin-top:2px;">${data.lcnno}</div>
+          </div>
+          <div>
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ประเภทผลิตภัณฑ์</div>
+            <div style="font-weight:600; color:#334155; margin-top:2px;">${data.typepro}</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาไทย)</div>
+            <div style="font-size:1rem; font-weight:700; color:#0f172a; margin-top:2px;">${data.productha}</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาอังกฤษ)</div>
+            <div style="font-size:0.9rem; font-weight:600; color:#475569; margin-top:2px;">${data.produceng || '-'}</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ผู้รับจดแจ้ง / เจ้าของแบรนด์</div>
+            <div style="font-weight:600; color:#334155; margin-top:2px;">${data.licen}</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ผู้ผลิต</div>
+            <div style="font-weight:600; color:#475569; margin-top:2px; font-size:0.84rem;">${data.thanm}</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">สถานที่ผลิต / ที่ตั้ง</div>
+            <div style="font-weight:600; color:#475569; margin-top:2px; font-size:0.84rem;">${data.Addr || '-'}</div>
+          </div>
+          <div>
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่อนุมัติจดแจ้ง</div>
+            <div style="font-weight:600; color:#334155; margin-top:2px;">${data.appDate}</div>
+          </div>
+          <div>
+            <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่หมดอายุใบจดแจ้ง</div>
+            <div style="font-weight:600; color:#334155; margin-top:2px;">${data.expDate}</div>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="margin-top:20px; border-top: 1px dashed #e2e8f0; padding-top:12px; font-size:0.72rem; color:#94a3b8; display:flex; justify-content:space-between; align-items:center;">
+          <span>🔍 ดึงข้อมูลแบบ Realtime จากฐานข้อมูลระบบ อย. ประเทศไทย (${data.source === 'combined' ? 'ฐานข้อมูลสมบูรณ์' : 'ข้อมูลพื้นฐาน'})</span>
+          <span>สสจ.ศรีสะเกษ</span>
+        </div>
+      </div>
+    `;
+
+  } catch (error) {
+    console.error("Fetch FDA error:", error);
+    setFdaStep(3, "active");
+    resultSec.innerHTML = `
+      <div class="alert alert-err" style="display:block; text-align:left; font-family:'Prompt', sans-serif;">
+        <strong>❌ เกิดข้อผิดพลาดในการดึงข้อมูลจาก อย.</strong><br>
+        <span style="font-size:0.88rem; display:block; margin-top:6px; color:rgba(255,255,255,0.7)">
+          ระบบสืบค้นส่วนปลายทางของ อย. อาจขัดข้องชั่วคราว หรือไม่ตอบสนอง กรุณากรอกเลขและกดค้นหาใหม่อีกครั้งครับ
+        </span>
+      </div>
+    `;
+  }
 }
 
-function searchFdaNumberDirect() {
+async function searchFdaNumberDirect() {
   const num = document.getElementById("fdaManualInput").value.trim();
   if (!num) { showToast("⚠️ กรุณากรอกเลขที่จดแจ้งก่อน"); return; }
   
@@ -3022,7 +3072,7 @@ function searchFdaNumberDirect() {
 
   setFdaStep(1, "done");
   setFdaStep(2, "done");
-  renderFdaCheckResult(num);
+  await renderFdaCheckResult(num);
 }
 
   /* ---- LOGOUT ---- */
