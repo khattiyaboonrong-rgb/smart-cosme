@@ -1101,10 +1101,10 @@ body::after {
   <nav class="tab-nav" role="tablist" aria-label="เมนูหลัก">
     <button class="tab-btn active" id="tab-design" onclick="switchTab('design')" role="tab" aria-selected="true" aria-controls="panel-design">📝 ออกแบบฉลาก</button>
     <button class="tab-btn" id="tab-check" onclick="switchTab('check')" role="tab" aria-selected="false" aria-controls="panel-check">🔍 ตรวจฉลากรูปภาพ</button>
-    <button class="tab-btn" id="tab-fda" onclick="switchTab('fda')" role="tab" aria-selected="false" aria-controls="panel-fda">🪪 ตรวจเลข อย.</button>
+    <button class="tab-btn" id="tab-fda" onclick="switchTab('fda')" role="tab" aria-selected="false" aria-controls="panel-fda">🪪 ตรวจเลขที่ใบจดแจ้ง</button>
     <button class="tab-btn" id="tab-law" onclick="switchTab('law')" role="tab" aria-selected="false" aria-controls="panel-law">⚖️ คำต้องห้าม</button>
     <button class="tab-btn" id="tab-history" onclick="switchTab('history')" role="tab" aria-selected="false" aria-controls="panel-history">📋 ประวัติ</button>
-    <button class="tab-btn" id="tab-feedback" onclick="switchTab('feedback')" role="tab" aria-selected="false" aria-controls="panel-feedback">⭐ ความพึงพอใจ</button>
+    <button class="tab-btn" id="tab-feedback" onclick="switchTab('feedback')" role="tab" aria-selected="false" aria-controls="panel-feedback">⭐ ความพึงพอใจ/ความเชื่อมั่น</button>
   </nav>
 
   <!-- ================================================ TAB: DESIGN ================================================ -->
@@ -1132,7 +1132,7 @@ body::after {
     <div class="glass-card">
       <div class="section-title">
         <div class="section-icon">📝</div>
-        <div><h2>ข้อมูลฉลาก</h2><p>กรอกข้อมูลให้ครบถ้วนตามข้อกำหนดของ อย.</p></div>
+        <div><h2>ข้อมูลฉลาก</h2><p>กรอกข้อมูลให้ครบถ้วนตามข้อกำหนดทางกฎหมาย</p></div>
       </div>
 
       <div class="form-grid">
@@ -1173,7 +1173,7 @@ body::after {
 
       <div class="form-group">
         <label class="form-label" for="manufacturer">ผู้ผลิต / ผู้จำหน่าย <span class="required">*</span></label>
-        <textarea id="manufacturer" class="form-textarea" placeholder="ชื่อบริษัท / ที่อยู่ / เบอร์โทรศัพท์..." oninput="autoPreview()" rows="2"></textarea>
+        <textarea id="manufacturer" class="form-textarea" placeholder="ชื่อบริษัท / ที่อยู่ / เบอร์โทรศัพท์ (บังคับระบุเบอร์โทรศัพท์)..." oninput="autoPreview()" rows="2"></textarea>
       </div>
 
       <div class="form-grid" style="margin-top:0;">
@@ -1197,7 +1197,7 @@ body::after {
 
       <div class="form-group" style="margin-top:14px;">
         <label class="form-label" for="notify">เลขที่ใบรับจดแจ้ง</label>
-        <input type="text" id="notify" class="form-input" placeholder="เช่น 10-1-6200000 (ขอได้ที่ อย. หรือ สสจ.)" oninput="autoPreview()">
+        <input type="text" id="notify" class="form-input" placeholder="เช่น 10-1-6200000 (ขอได้ที่ สสจ.)" oninput="autoPreview()">
       </div>
 
       <div class="form-group">
@@ -1304,14 +1304,14 @@ body::after {
       <div class="section-title">
         <div class="section-icon">🪪</div>
         <div>
-          <h2>ตรวจสอบเลขที่จดแจ้ง อย. จากรูปภาพ</h2>
-          <p>ถ่ายรูปบริเวณเลขจดแจ้ง อย. (เช่น 10-1-6200000) ระบบจะสแกนตัวเลขและค้นหาข้อมูลสถานะใบจดแจ้งจาก อย. ให้ทันที</p>
+          <h2>ตรวจสอบเลขที่ใบจดแจ้งจากรูปภาพ</h2>
+          <p>ถ่ายรูปบริเวณเลขที่ใบจดแจ้ง (เช่น 10-1-6200000) ระบบจะสแกนตัวเลขและค้นหาข้อมูลสถานะใบจดแจ้งให้ทันที</p>
         </div>
       </div>
 
       <!-- Steps -->
       <div class="steps-row">
-        <div class="step-item" id="fda-step1"><div class="step-num" id="fs1">1</div><span>อัปโหลดรูปภาพเลข อย.</span></div>
+        <div class="step-item" id="fda-step1"><div class="step-num" id="fs1">1</div><span>อัปโหลดรูปภาพเลขที่ใบจดแจ้ง</span></div>
         <div class="step-item" id="fda-step2"><div class="step-num" id="fs2">2</div><span>AI สแกนตัวเลข (OCR)</span></div>
         <div class="step-item" id="fda-step3"><div class="step-num" id="fs3">3</div><span>แสดงผลสถานะใบจดแจ้ง</span></div>
       </div>
@@ -1320,15 +1320,15 @@ body::after {
       <label class="upload-zone" id="fdaUploadZone" for="fdaImageInput" style="display:block;">
         <input type="file" id="fdaImageInput" accept="image/*" onchange="onFdaFileChange(event)" aria-label="อัปโหลดภาพเลขที่จดแจ้ง">
         <div class="upload-icon-big">📸</div>
-        <div class="upload-text-main">ถ่ายภาพหรืออัปโหลดรูปเลข อย. ที่นี่</div>
+        <div class="upload-text-main">ถ่ายภาพหรืออัปโหลดรูปเลขที่ใบจดแจ้งที่นี่</div>
         <div class="upload-text-sub">ระบบจะตรวจจับกลุ่มตัวเลขโดยอัตโนมัติ</div>
       </label>
 
-      <img id="fda-preview-img" alt="ตัวอย่างรูปภาพเลข อย. ที่อัปโหลด" style="display:none; max-width:100%; max-height:220px; margin: 16px auto; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      <img id="fda-preview-img" alt="ตัวอย่างรูปภาพเลขที่ใบจดแจ้งที่อัปโหลด" style="display:none; max-width:100%; max-height:220px; margin: 16px auto; border-radius: var(--radius-sm); border: 1px solid var(--border);">
 
       <div style="margin-top:16px; display:flex; gap:10px;">
-        <button class="btn btn-primary" id="fdaCheckBtn" onclick="checkFdaImage()" disabled aria-label="สแกนและค้นหาข้อมูล อย.">
-          🔍 สแกนและตรวจสอบเลข อย.
+        <button class="btn btn-primary" id="fdaCheckBtn" onclick="checkFdaImage()" disabled aria-label="สแกนและค้นหาข้อมูลเลขที่ใบจดแจ้ง">
+          🔍 สแกนและตรวจสอบเลขที่ใบจดแจ้ง
         </button>
         <button class="btn btn-outline" onclick="showFdaManualInput()" aria-label="กรอกเลขเอง">
           ⌨️ กรอกเลขจดแจ้งเอง
@@ -1348,7 +1348,7 @@ body::after {
       <div id="fda-progress-section" style="display:none; margin-top:20px;">
         <div class="progress-wrap">
           <div class="progress-header">
-            <span id="fda-progress-label-text">กำลังสแกนหาเลข อย. ในรูปภาพ...</span>
+            <span id="fda-progress-label-text">กำลังสแกนหาเลขที่ใบจดแจ้งในรูปภาพ...</span>
             <span id="fda-progress-pct">0%</span>
           </div>
           <div class="progress-bar"><div class="progress-fill" id="fda-progress-fill" style="width:0%"></div></div>
@@ -1382,7 +1382,7 @@ body::after {
             <span class="law-tag lt-red">ไม่มีผลข้างเคียง</span>
             <span class="law-tag lt-red">จบทุกปัญหาผิว / จบทุกปัญหาสิว</span>
             <span class="law-tag lt-red">ขาวทันที / เห็นผลทันที</span>
-            <span class="law-tag lt-red">ผ่านการรับรองจาก อย.</span>
+            <span class="law-tag lt-red">ผ่านการรับรองจดแจ้ง</span>
             <span class="law-tag lt-red">ขาวไวกว่าฉีด</span>
             <span class="law-tag lt-red">หน้าเรียวไม่ง้อโบท็อกซ์</span>
             <span class="law-tag lt-red">เต่งตึงเหมือนยิงเลเซอร์</span>
@@ -1449,7 +1449,7 @@ body::after {
       </details>
 
       <div class="law-footer">
-        ⚖️ อ้างอิง: พ.ร.บ. เครื่องสำอาง พ.ศ. 2558 | คู่มือโฆษณาเครื่องสำอาง ฉบับปรับปรุง พ.ศ. 2567 สำนักงาน อย.<br>
+        ⚖️ อ้างอิง: พ.ร.บ. เครื่องสำอาง พ.ศ. 2558 | คู่มือโฆษณาเครื่องสำอาง ฉบับปรับปรุง พ.ศ. 2567<br>
         📞 สอบถามเพิ่มเติม: สำนักงานสาธารณสุขจังหวัดศรีสะเกษ กลุ่มงานคุ้มครองผู้บริโภคและเภสัชสาธารณสุข
       </div>
     </div>
@@ -1472,7 +1472,7 @@ body::after {
     <div class="glass-card">
       <div class="section-title">
         <div class="section-icon">⭐</div>
-        <div><h2>ความพึงพอใจในการใช้งาน</h2><p>ข้อมูลนี้จะถูกบันทึกเพื่อพัฒนาระบบ</p></div>
+        <div><h2>ความพึงพอใจ / ความเชื่อมั่นในการใช้งาน</h2><p>ข้อมูลนี้จะถูกบันทึกเพื่อพัฒนาระบบ</p></div>
       </div>
 
       <div class="form-grid">
@@ -1491,7 +1491,7 @@ body::after {
       </div>
 
       <div class="form-group" style="margin-top:6px;">
-        <label class="form-label">ระดับความพึงพอใจ</label>
+        <label class="form-label">ระดับความพึงพอใจต่อการใช้งานระบบ</label>
         <div class="stars-row">
           <button class="star-btn" id="star1" onclick="setRating(1)" aria-label="1 ดาว">⭐</button>
           <button class="star-btn" id="star2" onclick="setRating(2)" aria-label="2 ดาว">⭐</button>
@@ -1502,13 +1502,25 @@ body::after {
         <div class="rating-label" id="ratingLabel"></div>
       </div>
 
+      <div class="form-group" style="margin-top:6px;">
+        <label class="form-label">ระดับความเชื่อมั่นต่อระบบ</label>
+        <div class="stars-row">
+          <button class="star-btn-trust" id="trustStar1" onclick="setTrustRating(1)" aria-label="1 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+          <button class="star-btn-trust" id="trustStar2" onclick="setTrustRating(2)" aria-label="2 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+          <button class="star-btn-trust" id="trustStar3" onclick="setTrustRating(3)" aria-label="3 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+          <button class="star-btn-trust" id="trustStar4" onclick="setTrustRating(4)" aria-label="4 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+          <button class="star-btn-trust" id="trustStar5" onclick="setTrustRating(5)" aria-label="5 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+        </div>
+        <div class="rating-label" id="trustRatingLabel"></div>
+      </div>
+
       <div class="form-group">
         <label class="form-label" for="feedback">ข้อเสนอแนะ / ปัญหาที่พบ</label>
         <textarea id="feedback" class="form-textarea" placeholder="เช่น ระบบใช้งานง่าย / อยากให้เพิ่มฟีเจอร์ ... / พบปัญหา ..." rows="4"></textarea>
       </div>
 
       <div id="fb-status"></div>
-      <button class="btn btn-gold" id="fbBtn" onclick="submitFeedback()">📨 ส่งข้อมูลความพึงพอใจ</button>
+      <button class="btn btn-gold" id="fbBtn" onclick="submitFeedback()">📨 ส่งข้อมูลความพึงพอใจ/ความเชื่อมั่น</button>
     </div>
   </div>
 
@@ -1525,6 +1537,7 @@ body::after {
    GLOBAL STATE
    ============================================================ */
 let rating = 0;
+let trustRating = 0;
 let ocrText = "";
 let selectedFile = null;
 let lastScore = 0;
@@ -1538,7 +1551,7 @@ const BANNED = {
     "ไร้สารพิษ","ไร้สารตกค้าง","ไม่ระคายเคืองผิว","ไม่มีผลข้างเคียง",
     "จบทุกปัญหาผิว","จบทุกปัญหาสิว",
     "ขาวทันที","ขาวเร็ว","ผิวขาวใสทันที","เห็นผลทันที",
-    "ผ่านมาตรฐาน","ผ่านการรับรองจาก อย.","ขาวไวกว่าฉีด",
+    "ผ่านมาตรฐาน","ผ่านการรับรองจดแจ้ง","ขาวไวกว่าฉีด",
     "หน้าเรียวไม่ง้อโบท็อกซ์","เต่งตึงเหมือนยิงเลเซอร์",
   ],
   mislead: [
@@ -1953,6 +1966,12 @@ function generate() {
   const name = document.getElementById("name").value.trim();
   if (!name) { showToast("⚠️ กรุณากรอกชื่อผลิตภัณฑ์"); return; }
 
+  const mfr = document.getElementById("manufacturer").value.trim();
+  if (!mfr) { showToast("⚠️ กรุณากรอกผู้ผลิต / ผู้จำหน่าย"); return; }
+
+  const hasPhone = /(?:โทร|tel|phone|t\.|contact)/i.test(mfr) || /\d{9,10}/.test(mfr.replace(/[- ]/g, '')) || /0[2-9]\d{7}/.test(mfr.replace(/[- ]/g, ''));
+  if (!hasPhone) { showToast("⚠️ กรุณาระบุเบอร์โทรศัพท์ในช่องผู้ผลิต/ผู้จำหน่ายด้วย"); return; }
+
   autoPreview();
   const result = analyzeFormData();
   renderFormAnalysis(result);
@@ -2033,7 +2052,7 @@ function analyzeFormData() {
   add("8. เลขที่ใบรับจดแจ้ง",
     notify ? (notifyOk ? "pass" : "warn") : "fail",
     notify ? (notifyOk ? `"${notify}"` : `"${notify}" — รูปแบบควรเป็น เช่น 10-1-6200000`)
-           : "ต้องระบุเลขที่ใบรับจดแจ้ง (ขอได้ที่ อย. หรือ สสจ.)");
+           : "ต้องระบุเลขที่ใบรับจดแจ้ง (ขอได้ที่ สสจ.)");
   if (!notify) recs.push("ต้องระบุเลขที่ใบรับจดแจ้ง");
 
   // 9. คำต้องห้าม (รวมทุกช่อง)
@@ -2461,10 +2480,10 @@ function analyzeOCRText(t) {
   if (!hasMfr) recs.push("ต้องระบุชื่อและที่อยู่ผู้ผลิตหรือผู้จำหน่าย");
 
   // 5. ปริมาณสุทธิ
-  const wtMatch = t.match(/(\d+[\.,]?\d*)\s*(g|ml|oz|kg|l|กรัม|มล\.?|ลิตร|fl\.?\s*oz)/i);
+  const wtMatch = t.match(/(\d+[\.,]?\d*)\s*(g|ml|oz|kg|l|cc|gram|grams|milliliter|milliliters|kilogram|kilograms|liter|liters|กรัม|มล\.?|มิลลิลิตร|กิโลกรัม|กก\.?|ลิตร|ออนซ์|ซีซี)/i);
   add("5. ปริมาณสุทธิ", wtMatch ? "pass" : "fail",
     wtMatch ? `พบปริมาณสุทธิ: ${wtMatch[0]}` : "ไม่พบปริมาณสุทธิ");
-  if (!wtMatch) recs.push("ต้องระบุปริมาณสุทธิ เช่น 50 g, 150 ml");
+  if (!wtMatch) recs.push("ต้องระบุปริมาณสุทธิ เช่น 50 กรัม, 150 มล., 50 g, 150 ml");
 
   // 6. วันที่
   const hasDate = /mfg|exp|best before|manufacture|expir|หมดอายุ|ผลิต|bb:|use by|\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}|\d{4}[\/-]\d{2}[\/-]\d{2}/i.test(t);
@@ -2572,6 +2591,20 @@ function setRating(r) {
   document.getElementById("ratingLabel").textContent = RATING_LABELS[r] || "";
 }
 
+function setTrustRating(r) {
+  trustRating = r;
+  document.querySelectorAll(".star-btn-trust").forEach((s,i) => {
+    if (i < r) {
+      s.style.filter = "none";
+      s.style.transform = "scale(1.08)";
+    } else {
+      s.style.filter = "grayscale(1) opacity(0.4)";
+      s.style.transform = "none";
+    }
+  });
+  document.getElementById("trustRatingLabel").textContent = RATING_LABELS[r] || "";
+}
+
 /* ============================================================
    SUBMIT FEEDBACK
    ============================================================ */
@@ -2581,7 +2614,8 @@ async function submitFeedback() {
   const product = document.getElementById("fb_product").value.trim();
   const fb = document.getElementById("feedback").value.trim();
 
-  if (rating === 0) { showToast("⚠️ กรุณาให้คะแนนความพึงพอใจ"); return; }
+  if (rating === 0) { showToast("⚠️ กรุณาให้คะแนนความพึงพอใจต่อการใช้งาน"); return; }
+  if (trustRating === 0) { showToast("⚠️ กรุณาให้คะแนนความเชื่อมั่นต่อระบบ"); return; }
 
   const btn = document.getElementById("fbBtn");
   btn.disabled = true;
@@ -2595,34 +2629,40 @@ async function submitFeedback() {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': 'Bearer ' + token } : {})
       },
-      body: JSON.stringify({ name, contact, product, rating, comment: fb })
+      body: JSON.stringify({ name, contact, product, rating, trustRating, comment: fb })
     });
     
     if (!res.ok) throw new Error('API Error');
   } catch(e) {
     // Save to local fallback if API fails
     const records = JSON.parse(localStorage.getItem("cosme_feedback") || "[]");
-    records.push({ name, contact, product, rating, feedback: fb, date: new Date().toLocaleString("th-TH") });
+    records.push({ name, contact, product, rating, trustRating, feedback: fb, date: new Date().toLocaleString("th-TH") });
     localStorage.setItem("cosme_feedback", JSON.stringify(records));
   }
 
   setTimeout(() => {
     document.getElementById("fb-status").innerHTML = `
       <div class="result-box result-pass" style="margin-bottom:10px;">
-        ✅ ขอบคุณสำหรับข้อมูล! ให้คะแนน ${rating} ดาว ⭐<br>
+        ✅ ขอบคุณสำหรับข้อมูล! พึงพอใจต่อการใช้งาน ${rating} ดาว ⭐ / เชื่อมั่นต่อระบบ ${trustRating} ดาว ⭐<br>
         <small style="opacity:0.7;">บันทึกสำเร็จเรียบร้อยแล้ว</small>
       </div>`;
     btn.disabled = false;
-    btn.innerHTML = '📨 ส่งข้อมูลความพึงพอใจ';
+    btn.innerHTML = '📨 ส่งข้อมูลความพึงพอใจ/ความเชื่อมั่น';
     // Reset
     document.getElementById("fb_name").value = "";
     document.getElementById("fb_contact").value = "";
     document.getElementById("fb_product").value = "";
     document.getElementById("feedback").value = "";
     rating = 0;
+    trustRating = 0;
     document.querySelectorAll(".star-btn").forEach(s => s.className = "star-btn");
+    document.querySelectorAll(".star-btn-trust").forEach(s => {
+      s.style.filter = "grayscale(1) opacity(0.4)";
+      s.style.transform = "none";
+    });
     document.getElementById("ratingLabel").textContent = "";
-    showToast("⭐ บันทึกความพึงพอใจแล้ว ขอบคุณ!");
+    document.getElementById("trustRatingLabel").textContent = "";
+    showToast("⭐ บันทึกข้อมูลเรียบร้อยแล้ว ขอบคุณ!");
   }, 900);
 }
 

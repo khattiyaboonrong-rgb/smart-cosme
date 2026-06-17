@@ -180,9 +180,17 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
 // POST /api/feedback — บันทึกความพึงพอใจ
 app.post('/api/feedback', requireAuth, async (req, res) => {
   try {
-    const { name, contact, product, rating, comment } = req.body;
+    const { name, contact, product, rating, trustRating, comment } = req.body;
     const fb = await prisma.feedback.create({
-      data: { userId: req.user.userId, name, contact, product, rating: rating ? Number(rating) : null, comment }
+      data: { 
+        userId: req.user.userId, 
+        name, 
+        contact, 
+        product, 
+        rating: rating ? Number(rating) : null, 
+        trustRating: trustRating ? Number(trustRating) : null, 
+        comment 
+      }
     });
     res.status(201).json({ success: true, feedback: fb });
   } catch (err) {
@@ -211,7 +219,7 @@ app.post('/api/labels', requireAuth, async (req, res) => {
 // GET /api/admin/stats
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
-    const [total, approved, rejected, todayUsers, totalFeedback, totalLabels, avgRating] = await Promise.all([
+    const [total, approved, rejected, todayUsers, totalFeedback, totalLabels, avgStats] = await Promise.all([
       prisma.user.count({ where: { role: 'user', deletedAt: null } }),
       prisma.user.count({ where: { role: 'user', status: 'approved', deletedAt: null } }),
       prisma.user.count({ where: { role: 'user', status: 'rejected', deletedAt: null } }),
@@ -223,9 +231,18 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       }),
       prisma.feedback.count(),
       prisma.label.count(),
-      prisma.feedback.aggregate({ _avg: { rating: true } }),
+      prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true } }),
     ]);
-    res.json({ total, approved, rejected, todayUsers, totalFeedback, totalLabels, avgRating: avgRating._avg.rating });
+    res.json({ 
+      total, 
+      approved, 
+      rejected, 
+      todayUsers, 
+      totalFeedback, 
+      totalLabels, 
+      avgRating: avgStats._avg.rating,
+      avgTrustRating: avgStats._avg.trustRating
+    });
   } catch (err) {
     res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
   }
@@ -356,8 +373,8 @@ app.delete('/api/admin/activities', requireAdmin, async (req, res) => {
 app.get('/api/admin/feedback', requireAdmin, async (req, res) => {
   try {
     const feedback = await prisma.feedback.findMany({ orderBy: { createdAt: 'desc' } });
-    const avg = await prisma.feedback.aggregate({ _avg: { rating: true } });
-    res.json({ feedback, avgRating: avg._avg.rating });
+    const avg = await prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true } });
+    res.json({ feedback, avgRating: avg._avg.rating, avgTrustRating: avg._avg.trustRating });
   } catch (err) {
     res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
   }

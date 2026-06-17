@@ -56,14 +56,15 @@ model Activity {
 // ตาราง Feedback — ความพึงพอใจ
 // =============================================
 model Feedback {
-  id        String   @id @default(uuid())
-  userId    String?
-  name      String?
-  contact   String?
-  product   String?
-  rating    Int?
-  comment   String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      String?
+  name        String?
+  contact     String?
+  product     String?
+  rating      Int?      // ความพึงพอใจ
+  trustRating Int?      // ความเชื่อมั่น
+  comment     String?
+  createdAt   DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
 }

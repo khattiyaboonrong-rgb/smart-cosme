@@ -199,7 +199,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.6;}
       <span class="sb-item-icon">📋</span> ประวัติการใช้งาน
     </button>
     <button class="sb-item" onclick="showPanel('feedback')">
-      <span class="sb-item-icon">⭐</span> ความพึงพอใจ
+      <span class="sb-item-icon">⭐</span> ความพึงพอใจ/ความเชื่อมั่น
     </button>
 
     <div class="sb-section">ระบบ</div>
@@ -320,10 +320,10 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.6;}
     <div class="panel" id="panel-feedback">
       <div class="stats-grid" id="fb-stats" style="margin-bottom:18px;"></div>
       <div class="card">
-        <div class="card-header"><div class="card-title">⭐ ความพึงพอใจทั้งหมด</div></div>
+        <div class="card-header"><div class="card-title">⭐ ความพึงพอใจ/ความเชื่อมั่นทั้งหมด</div></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>#</th><th>ชื่อ</th><th>ผลิตภัณฑ์</th><th>คะแนน</th><th>ความคิดเห็น</th><th>วันที่</th></tr></thead>
+            <thead><tr><th>#</th><th>ชื่อผู้ประกอบการ</th><th>ผลิตภัณฑ์</th><th>พึงพอใจ / เชื่อมั่น</th><th>ความคิดเห็น</th><th>วันที่</th></tr></thead>
             <tbody id="fb-tbody"><tr><td colspan="6" class="loading-overlay"><span class="spin"></span></td></tr></tbody>
           </table>
         </div>
@@ -449,9 +449,9 @@ async function init() {
    ============================================================ */
 const panelTitles = {
   overview:   '📊 ภาพรวมระบบ',
-  users:      '👥 ผู้ประกอบการ',
-  activities: '📋 ประวัติการใช้งาน',
-  feedback:   '⭐ ความพึงพอใจ',
+  users:      '👥 การจัดการผู้ประกอบการ',
+  activities: '📋 ประวัติกิจกรรมของระบบ',
+  feedback:   '⭐ ความพึงพอใจ/ความเชื่อมั่น',
   settings:   '⚙️ ตั้งค่า',
 };
 
@@ -510,8 +510,8 @@ async function loadOverview() {
       </div>
       <div class="stat-card stat-purple">
         <div class="stat-num">${s.totalFeedback}</div>
-        <div class="stat-label">ความพึงพอใจ</div>
-        <div class="stat-sub">เฉลี่ย ${s.avgRating ? s.avgRating.toFixed(1) : '-'} ⭐</div>
+        <div class="stat-label">ความพึงพอใจ/ความเชื่อมั่น</div>
+        <div class="stat-sub">พึงพอใจ: ${s.avgRating ? s.avgRating.toFixed(1) : '-'}⭐ / เชื่อมั่น: ${s.avgTrustRating ? s.avgTrustRating.toFixed(1) : '-'}⭐</div>
         <div class="stat-icon">⭐</div>
       </div>
       <div class="stat-card stat-teal">
@@ -761,8 +761,13 @@ async function loadFeedback() {
     </div>
     <div class="stat-card stat-green">
       <div class="stat-num">${data.avgRating ? data.avgRating.toFixed(1) : '-'}</div>
-      <div class="stat-label">คะแนนเฉลี่ย</div>
+      <div class="stat-label">คะแนนพึงพอใจเฉลี่ย</div>
       <div class="stat-icon">⭐</div>
+    </div>
+    <div class="stat-card stat-blue">
+      <div class="stat-num">${data.avgTrustRating ? data.avgTrustRating.toFixed(1) : '-'}</div>
+      <div class="stat-label">คะแนนความเชื่อมั่นเฉลี่ย</div>
+      <div class="stat-icon">🛡️</div>
     </div>
   `;
 
@@ -775,7 +780,10 @@ async function loadFeedback() {
         <td style="color:rgba(255,255,255,0.3)">${i+1}</td>
         <td>${f.name||'-'}</td>
         <td>${f.product||'-'}</td>
-        <td>${'⭐'.repeat(f.rating||0)} ${f.rating||'-'}</td>
+        <td>
+          <div style="font-size:0.8rem;">พึงพอใจ: ${'⭐'.repeat(f.rating||0)} (${f.rating||'-'})</div>
+          <div style="font-size:0.8rem; margin-top:3px;">เชื่อมั่น: ${'⭐'.repeat(f.trustRating||0)} (${f.trustRating||'-'})</div>
+        </td>
         <td style="font-size:0.78rem">${f.comment||'-'}</td>
         <td style="font-size:0.72rem;color:rgba(255,255,255,0.35)">${fmtDate(f.createdAt)}</td>
       </tr>`).join('');
