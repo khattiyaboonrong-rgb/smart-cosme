@@ -4,4 +4,7 @@ server/node_modules/
 server/.env
 server/data/cosme.db
 server/data/cosme.db-journal
+server/prisma/data/cosme.db
+server/prisma/data/cosme.db-journal
 *.log
+
