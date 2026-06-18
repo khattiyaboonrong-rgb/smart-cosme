@@ -591,7 +591,7 @@ app.use((err, req, res, next) => {
 async function main() {
   try {
     await prisma.$connect();
-    console.log('✅ เชื่อมต่อฐานข้อมูล SQLite สำเร็จ');
+    console.log('✅ เชื่อมต่อฐานข้อมูลสำเร็จ');
 
     // Bind เฉพาะ 127.0.0.1 — ไม่เปิดสู่ภายนอก
     app.listen(PORT, '0.0.0.0', () => {
