@@ -6,6 +6,12 @@
 <title>Smart Cosme — เข้าสู่ระบบ | สสจ.ศรีสะเกษ</title>
 <meta name="description" content="ระบบเข้าสู่ระบบสำหรับผู้ประกอบการเครื่องสำอาง สำนักงานสาธารณสุขจังหวัดศรีสะเกษ">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Auto Redirect if logged in -->
+<script>
+  if (localStorage.getItem('cosme_token')) {
+    window.location.replace('index.html');
+  }
+</script>
 <style>
 /* ============================================================
    DESIGN TOKENS — White / Light-Blue Glow Theme

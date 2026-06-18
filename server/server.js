@@ -35,6 +35,11 @@ app.use(cors({
 
 app.use(express.json());
 
+// Serve login.html for root path
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'login.html'));
+});
+
 // Serve frontend files
 app.use(express.static(path.join(__dirname, '..')));
 
