@@ -553,7 +553,7 @@ body::after {
         <div class="reg-step" id="reg-step2">
           <div class="form-section">ข้อมูลกิจการ</div>
           <div class="fg">
-            <label class="fl" for="r-biz">ชื่อกิจการ / ร้านค้า <span class="req">*</span></label>
+            <label class="fl" id="r-biz-label" for="r-biz">ชื่อกิจการ / ร้านค้า <span class="req">*</span></label>
             <input type="text" id="r-biz" class="fi" placeholder="เช่น ร้านสมุนไพรไทย">
           </div>
           <div class="fg">
@@ -752,6 +752,9 @@ function selectRole(role) {
   currentSelectedRole = role;
   const btnUser = document.getElementById('btn-role-user');
   const btnAdmin = document.getElementById('btn-role-admin');
+  const rBiz = document.getElementById('r-biz');
+  const rBizLabel = document.getElementById('r-biz-label');
+  
   if (role === 'admin') {
     btnAdmin.classList.add('active');
     btnAdmin.style.border = '2px solid var(--blue-600)';
@@ -763,8 +766,10 @@ function selectRole(role) {
     btnUser.style.background = 'var(--bg2)';
     btnUser.style.color = 'var(--text-mid)';
     
-    // Auto-fill biz fields for admin/officer
-    document.getElementById('r-biz').value = 'สำนักงานสาธารณสุขจังหวัด';
+    // Set placeholder, label, and defaults for admin/officer
+    rBizLabel.innerHTML = 'สถานที่ปฏิบัติงาน / หน่วยงาน <span class="req">*</span>';
+    rBiz.placeholder = 'เติมชื่อสถานที่ปฏิบัติงาน';
+    rBiz.value = ''; // Let them fill it in
     document.getElementById('r-biztype').value = 'อื่นๆ';
     document.getElementById('r-province').value = 'ศรีสะเกษ';
   } else {
@@ -778,10 +783,12 @@ function selectRole(role) {
     btnAdmin.style.background = 'var(--bg2)';
     btnAdmin.style.color = 'var(--text-mid)';
     
-    // Clear biz fields
-    document.getElementById('r-biz').value = '';
+    // Reset to entrepreneur defaults
+    rBizLabel.innerHTML = 'ชื่อกิจการ / ร้านค้า <span class="req">*</span>';
+    rBiz.placeholder = 'เช่น ร้านสมุนไพรไทย';
+    rBiz.value = '';
     document.getElementById('r-biztype').value = '';
-    document.getElementById('r-province').value = 'ศรีสะเกษ'; // Default
+    document.getElementById('r-province').value = 'ศรีสะเกษ';
   }
 }
 

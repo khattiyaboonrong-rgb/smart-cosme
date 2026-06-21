@@ -114,7 +114,7 @@ app.post('/api/auth/register', async (req, res) => {
         businessName, businessType: businessType || '-',
         idCard: idCard || null, phone, address: address || null,
         province, passwordHash,
-        status: 'approved', role: (role === 'admin' || role === 'officer') ? 'admin' : 'user'
+        status: 'approved', role: (role === 'admin' || role === 'officer') ? 'officer' : 'user'
       }
     });
 
@@ -226,7 +226,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
     const [total, totalAdmins, approved, rejected, todayUsers, totalFeedback, totalLabels, totalChecks, avgStats] = await Promise.all([
       prisma.user.count({ where: { role: 'user', deletedAt: null } }),
-      prisma.user.count({ where: { role: 'admin', deletedAt: null } }),
+      prisma.user.count({ where: { role: { in: ['admin', 'officer'] }, deletedAt: null } }),
       prisma.user.count({ where: { role: 'user', status: 'approved', deletedAt: null } }),
       prisma.user.count({ where: { role: 'user', status: 'rejected', deletedAt: null } }),
       prisma.user.count({
@@ -262,7 +262,7 @@ app.get('/api/public/stats', async (req, res) => {
   try {
     const [entrepreneurs, officers, labelDesigns, labelChecks, avgStats] = await Promise.all([
       prisma.user.count({ where: { role: 'user', deletedAt: null } }),
-      prisma.user.count({ where: { role: 'admin', deletedAt: null } }),
+      prisma.user.count({ where: { role: { in: ['admin', 'officer'] }, deletedAt: null } }),
       prisma.label.count(),
       prisma.activity.count({ where: { action: { in: ['ocr_check', 'fda_check'] } } }),
       prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true } }),
