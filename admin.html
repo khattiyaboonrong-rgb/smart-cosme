@@ -488,9 +488,9 @@ async function loadOverview() {
     const s = statsRes.data;
     document.getElementById('stats-grid').innerHTML = `
       <div class="stat-card stat-blue">
-        <div class="stat-num">${s.total}</div>
+        <div class="stat-num">${s.total} <span style="font-size:1.1rem; font-weight:normal;">ราย</span></div>
         <div class="stat-label">ผู้ประกอบการทั้งหมด</div>
-        <div class="stat-sub">+${s.todayUsers} วันนี้</div>
+        <div class="stat-sub">ผู้ประกอบการ: ${s.total} | เจ้าหน้าที่: ${s.totalAdmins || 0}</div>
         <div class="stat-icon">👥</div>
       </div>
       <div class="stat-card stat-green">
@@ -515,9 +515,10 @@ async function loadOverview() {
         <div class="stat-icon">⭐</div>
       </div>
       <div class="stat-card stat-teal">
-        <div class="stat-num">${s.todayUsers}</div>
-        <div class="stat-label">สมัครวันนี้</div>
-        <div class="stat-icon">📅</div>
+        <div class="stat-num">${s.totalChecks || 0}</div>
+        <div class="stat-label">ตรวจรูปภาพ / เลขจดแจ้ง</div>
+        <div class="stat-sub">สแกนฉลากและตรวจเลข อย.</div>
+        <div class="stat-icon">🔍</div>
       </div>
     `;
   }

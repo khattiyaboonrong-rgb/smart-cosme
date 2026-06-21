@@ -224,8 +224,9 @@ app.post('/api/labels', requireAuth, async (req, res) => {
 // GET /api/admin/stats
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
-    const [total, approved, rejected, todayUsers, totalFeedback, totalLabels, avgStats] = await Promise.all([
+    const [total, totalAdmins, approved, rejected, todayUsers, totalFeedback, totalLabels, totalChecks, avgStats] = await Promise.all([
       prisma.user.count({ where: { role: 'user', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'admin', deletedAt: null } }),
       prisma.user.count({ where: { role: 'user', status: 'approved', deletedAt: null } }),
       prisma.user.count({ where: { role: 'user', status: 'rejected', deletedAt: null } }),
       prisma.user.count({
@@ -236,15 +237,18 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       }),
       prisma.feedback.count(),
       prisma.label.count(),
+      prisma.activity.count({ where: { action: { in: ['ocr_check', 'fda_check'] } } }),
       prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true } }),
     ]);
     res.json({ 
       total, 
+      totalAdmins,
       approved, 
       rejected, 
       todayUsers, 
       totalFeedback, 
       totalLabels, 
+      totalChecks,
       avgRating: avgStats._avg.rating,
       avgTrustRating: avgStats._avg.trustRating
     });
@@ -260,7 +264,7 @@ app.get('/api/public/stats', async (req, res) => {
       prisma.user.count({ where: { role: 'user', deletedAt: null } }),
       prisma.user.count({ where: { role: 'admin', deletedAt: null } }),
       prisma.label.count(),
-      prisma.activity.count({ where: { action: 'ocr_check' } }),
+      prisma.activity.count({ where: { action: { in: ['ocr_check', 'fda_check'] } } }),
       prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true } }),
     ]);
     res.json({ 
@@ -475,6 +479,27 @@ function postJson(url, payload) {
   });
 }
 
+// POST /api/activities/log
+app.post('/api/activities/log', async (req, res) => {
+  try {
+    const { action, detail } = req.body;
+    let userId = null;
+    let email = null;
+    const auth = req.headers['authorization'] || '';
+    if (auth.startsWith('Bearer ')) {
+      try {
+        const decoded = jwt.verify(auth.slice(7), SECRET);
+        userId = decoded.userId;
+        email = decoded.email;
+      } catch (e) {}
+    }
+    await logActivity(userId, action, { email, detail });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการบันทึกกิจกรรม' });
+  }
+});
+
 // GET /api/fda/check?number=...
 app.get('/api/fda/check', async (req, res) => {
   try {
@@ -488,6 +513,19 @@ app.get('/api/fda/check', async (req, res) => {
     if (cleanedKeyword.length < 5) {
       return res.status(400).json({ error: 'เลขที่จดแจ้งสั้นเกินไป' });
     }
+
+    // Log fda_check activity
+    let userId = null;
+    let email = null;
+    const auth = req.headers['authorization'] || '';
+    if (auth.startsWith('Bearer ')) {
+      try {
+        const decoded = jwt.verify(auth.slice(7), SECRET);
+        userId = decoded.userId;
+        email = decoded.email;
+      } catch (e) {}
+    }
+    await logActivity(userId, 'fda_check', { email, detail: `ตรวจเลขจดแจ้ง: ${cleanedKeyword}` });
 
     // 1. Search on Oryor
     const searchUrl = `https://api.oryor.com/productSerial/search?keyword=${encodeURIComponent(cleanedKeyword)}`;

@@ -2431,6 +2431,21 @@ async function checkImage() {
     renderOCRAnalysis(aiResult);
     saveHistory({...aiResult, name: "(จากรูปภาพ)"});
 
+    // Log ocr_check activity to backend
+    (async () => {
+      try {
+        const token = localStorage.getItem('cosme_token');
+        const authHeaders = token ? { 'Authorization': 'Bearer ' + token } : {};
+        await fetch((window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + '/api/activities/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ action: 'ocr_check', detail: 'ตรวจฉลากจากรูปภาพ' })
+        });
+      } catch (e) {
+        console.warn("Failed to log activity:", e);
+      }
+    })();
+
   } catch(err) {
     console.error(err);
     document.getElementById("imageResult").innerHTML = `<div class="result-box result-fail">❌ เกิดข้อผิดพลาด: ${err.message}</div>`;
@@ -2955,8 +2970,12 @@ async function renderFdaCheckResult(num) {
   `;
 
   try {
+    const token = localStorage.getItem('cosme_token');
+    const authHeaders = token ? { 'Authorization': 'Bearer ' + token } : {};
     const backendUrl = (window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + `/api/fda/check?number=${encodeURIComponent(formattedNum)}`;
-    const response = await fetch(backendUrl);
+    const response = await fetch(backendUrl, {
+      headers: authHeaders
+    });
     
     if (!response.ok) {
       throw new Error("HTTP error " + response.status);
