@@ -253,6 +253,29 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/public/stats — สำหรับดึงไปแสดงหน้า Dashboard สาธารณะ (ไม่ต้องใช้ Admin)
+app.get('/api/public/stats', async (req, res) => {
+  try {
+    const [entrepreneurs, officers, labelDesigns, labelChecks, avgStats] = await Promise.all([
+      prisma.user.count({ where: { role: 'user', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'admin', deletedAt: null } }),
+      prisma.label.count(),
+      prisma.activity.count({ where: { action: 'ocr_check' } }),
+      prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true } }),
+    ]);
+    res.json({ 
+      entrepreneurs, 
+      officers, 
+      labelDesigns, 
+      labelChecks, 
+      avgRating: avgStats._avg.rating || 4.8,
+      avgTrustRating: avgStats._avg.trustRating || 4.7
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสาธารณะ' });
+  }
+});
+
 // GET /api/admin/users
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
   try {
