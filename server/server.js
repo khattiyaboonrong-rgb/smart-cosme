@@ -97,7 +97,7 @@ function logActivity(userId, action, extra = {}) {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, firstName, lastName, businessName, businessType,
-            idCard, phone, address, province } = req.body;
+            idCard, phone, address, province, role } = req.body;
 
     if (!email || !password || !firstName || !lastName || !businessName || !phone || !province) {
       return res.status(400).json({ error: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
@@ -114,7 +114,7 @@ app.post('/api/auth/register', async (req, res) => {
         businessName, businessType: businessType || '-',
         idCard: idCard || null, phone, address: address || null,
         province, passwordHash,
-        status: 'approved', role: 'user'
+        status: 'approved', role: (role === 'admin' || role === 'officer') ? 'admin' : 'user'
       }
     });
 

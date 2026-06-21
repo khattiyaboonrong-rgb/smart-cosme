@@ -516,6 +516,15 @@ body::after {
 
         <!-- STEP 1 -->
         <div class="reg-step active" id="reg-step1">
+          <div class="form-section" style="margin-top:0;">ประเภทผู้ใช้งาน <span class="req">*</span></div>
+          <div style="display:flex; gap:12px; margin-bottom:18px;">
+            <button type="button" class="role-btn active" id="btn-role-user" onclick="selectRole('user')" style="flex:1; padding: 12px; border-radius: 12px; border: 2px solid var(--blue-600); background: var(--blue-100); color: var(--blue-900); font-family: 'Prompt', sans-serif; font-weight: 600; cursor: pointer; transition: var(--trans);">
+              👥 ผู้ประกอบการ
+            </button>
+            <button type="button" class="role-btn" id="btn-role-admin" onclick="selectRole('admin')" style="flex:1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg2); color: var(--text-mid); font-family: 'Prompt', sans-serif; font-weight: 600; cursor: pointer; transition: var(--trans);">
+              👮 เจ้าหน้าที่
+            </button>
+          </div>
           <div class="form-section">ข้อมูลส่วนตัว</div>
           <div class="form-grid">
             <div class="fg">
@@ -738,6 +747,44 @@ function setStepUI(n){
   }
   clearAlerts();
 }
+let currentSelectedRole = 'user';
+function selectRole(role) {
+  currentSelectedRole = role;
+  const btnUser = document.getElementById('btn-role-user');
+  const btnAdmin = document.getElementById('btn-role-admin');
+  if (role === 'admin') {
+    btnAdmin.classList.add('active');
+    btnAdmin.style.border = '2px solid var(--blue-600)';
+    btnAdmin.style.background = 'var(--blue-100)';
+    btnAdmin.style.color = 'var(--blue-900)';
+    
+    btnUser.classList.remove('active');
+    btnUser.style.border = '2px solid var(--border)';
+    btnUser.style.background = 'var(--bg2)';
+    btnUser.style.color = 'var(--text-mid)';
+    
+    // Auto-fill biz fields for admin/officer
+    document.getElementById('r-biz').value = 'สำนักงานสาธารณสุขจังหวัด';
+    document.getElementById('r-biztype').value = 'อื่นๆ';
+    document.getElementById('r-province').value = 'ศรีสะเกษ';
+  } else {
+    btnUser.classList.add('active');
+    btnUser.style.border = '2px solid var(--blue-600)';
+    btnUser.style.background = 'var(--blue-100)';
+    btnUser.style.color = 'var(--blue-900)';
+    
+    btnAdmin.classList.remove('active');
+    btnAdmin.style.border = '2px solid var(--border)';
+    btnAdmin.style.background = 'var(--bg2)';
+    btnAdmin.style.color = 'var(--text-mid)';
+    
+    // Clear biz fields
+    document.getElementById('r-biz').value = '';
+    document.getElementById('r-biztype').value = '';
+    document.getElementById('r-province').value = 'ศรีสะเกษ'; // Default
+  }
+}
+
 function stepNext(from){
   if(from===1){
     const fname=document.getElementById('r-fname').value.trim();
@@ -854,6 +901,7 @@ async function doRegister(){
       phone:        document.getElementById('r-phone').value.trim(),
       address:      document.getElementById('r-addr').value.trim() || null,
       province:     document.getElementById('r-province').value,
+      role:         currentSelectedRole,
     }),
   });
 
