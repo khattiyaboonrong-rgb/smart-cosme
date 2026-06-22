@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Modern Luxury Cosmetics</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color Palette */
+            --dusty-rose: #dfb6b2;
+            --champagne-nude: #f4e7d3;
+            --creamy-beige: #fbf9f5;
+            --luxury-gold: #c5a880;
+            --espresso: #382923;
+            --espresso-light: #5a453d;
+            
+            /* Typography */
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Prompt', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--creamy-beige);
+            color: var(--espresso);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* "Glow from within" Background */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        body::before {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--dusty-rose) 0%, transparent 70%);
+        }
+
+        body::after {
+            bottom: -20%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, var(--champagne-nude) 0%, transparent 70%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navbar - Glassmorphism */
+        .navbar {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background: rgba(251, 249, 245, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(197, 168, 128, 0.15);
+            z-index: 1000;
+            padding: 18px 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--espresso);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--espresso-light);
+            font-size: 0.9rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--luxury-gold);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icons svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--espresso);
+            fill: none;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: stroke 0.3s ease;
+        }
+
+        .nav-icons svg:hover {
+            stroke: var(--luxury-gold);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 120px 0;
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-content {
+            padding-right: 40px;
+        }
+
+        .tagline {
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--luxury-gold);
+            margin-bottom: 20px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .hero-title {
+            font-family: var(--font-serif);
+            font-size: 4.5rem;
+            font-weight: 400;
+            color: var(--espresso);
+            line-height: 1.1;
+            margin-bottom: 30px;
+        }
+
+        .hero-title i {
+            font-style: italic;
+            color: var(--luxury-gold);
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            color: var(--espresso-light);
+            margin-bottom: 40px;
+            max-width: 480px;
+            font-weight: 300;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background: var(--espresso);
+            color: var(--creamy-beige);
+            padding: 16px 40px;
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.4s ease;
+            border: 1px solid var(--espresso);
+        }
+
+        .cta-btn:hover {
+            background: transparent;
+            color: var(--espresso);
+            box-shadow: 0 10px 30px rgba(56, 41, 35, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .hero-image-wrapper {
+            position: relative;
+            border-radius: 200px 200px 0 0;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            height: 600px;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s ease;
+        }
+
+        .hero-image-wrapper:hover .hero-image {
+            transform: scale(1.05);
+        }
+
+        /* Featured Products Section */
+        .products-section {
+            padding: 100px 0 140px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 70px;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-serif);
+            font-size: 3rem;
+            color: var(--espresso);
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        .section-header p {
+            font-size: 1rem;
+            color: var(--luxury-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-12px);
+            background: #fff;
+            box-shadow: 0 20px 40px rgba(197, 168, 128, 0.25); /* Soft golden shadow */
+        }
+
+        .product-img-wrapper {
+            width: 100%;
+            height: 320px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            background: var(--champagne-nude);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            mix-blend-mode: multiply;
+        }
+
+        .product-card h3 {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            color: var(--espresso);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .product-desc {
+            font-size: 0.9rem;
+            color: var(--espresso-light);
+            margin-bottom: 16px;
+        }
+
+        .product-price {
+            font-size: 1.1rem;
+            color: var(--luxury-gold);
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                text-align: center;
+            }
+            .hero-content {
+                padding-right: 0;
+            }
+            .hero-title {
+                font-size: 3.5rem;
+            }
+            .hero-desc {
+                margin: 0 auto 30px auto;
+            }
+            .hero-image-wrapper {
+                height: 400px;
+                border-radius: 100px 100px 0 0;
+            }
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sticky Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="#" class="logo">AURA</a>
+            <ul class="nav-links">
+                <li><a href="#">Shop</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Journal</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="nav-icons">
+                <!-- Search Icon -->
+                <svg viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <!-- Cart Icon -->
+                <svg viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <span class="tagline">Reveal your inner radiance</span>
+                <h1 class="hero-title">Effortless Beauty, <br><i>Redefined.</i></h1>
+                <p class="hero-desc">Discover the new standard of modern luxury. Formulated for the bold, the mindful, and the radiant generation of today.</p>
+                <a href="#shop" class="cta-btn">Explore Collection</a>
+            </div>
+            <div class="hero-image-wrapper">
+                <img src="https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&q=80&w=1000" alt="Luxury Serum" class="hero-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products Grid -->
+    <section class="products-section" id="shop">
+        <div class="container">
+            <div class="section-header">
+                <p>Curated Essentials</p>
+                <h2>Signature Collection</h2>
+            </div>
+            <div class="product-grid">
+                
+                <!-- Product 1 -->
+                <div class="product-card">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=800" alt="Luminous Drops" class="product-img">
+                    </div>
+                    <h3>Luminous Drops</h3>
+                    <p class="product-desc">Liquid highlighter for an ethereal glow.</p>
+                    <div class="product-price">$42.00</div>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="product-card">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1596462502278-27bf85033e5a?auto=format&fit=crop&q=80&w=800" alt="Velvet Rose Blush" class="product-img">
+                    </div>
+                    <h3>Velvet Rose Blush</h3>
+                    <p class="product-desc">Weightless cream blush in dusty rose.</p>
+                    <div class="product-price">$38.00</div>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="product-card">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&q=80&w=800" alt="Aura Skin Tint" class="product-img">
+                    </div>
+                    <h3>Aura Skin Tint</h3>
+                    <p class="product-desc">Breathable, sheer coverage foundation.</p>
+                    <div class="product-price">$54.00</div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>

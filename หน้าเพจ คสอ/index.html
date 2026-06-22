@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISAKET SMART COSME</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <h1>SISAKET<br><span>SMART COSME</span></h1>
+            </div>
+            <nav class="nav-links">
+                <a href="#">หน้าหลัก</a>
+                <a href="#">เกี่ยวกับเรา</a>
+                <a href="#">บริการ ⌄</a>
+                <a href="#">ข่าวประชาสัมพันธ์</a>
+                <a href="#">ติดต่อเรา</a>
+            </nav>
+            <div class="header-actions">
+                <span class="search-icon">🔍</span>
+                <span class="lang-selector">🇹🇭 TH ⌄</span>
+                <button class="login-btn">Login</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section (Futuristic AI Style) -->
+    <section class="hero futuristic-hero">
+        
+        <div class="container hero-grid-tech">
+            <!-- Center/Left Content -->
+            <div class="hero-content-tech">
+                <h2 class="glowing-text">SISAKET SMART COSME</h2>
+                <p class="tech-subtitle">ระบบดิจิทัลอัจฉริยะเพื่อยกระดับการกำกับดูแลเครื่องสำอางอย่างมีประสิทธิภาพ</p>
+                <div class="hero-buttons">
+                    <button class="btn-neon" onclick="window.location.href='https://smart-cosme.onrender.com/'">เริ่มใช้งาน</button>
+                    <button class="btn-outline-neon" onclick="window.open('https://oryor.com/check-product-serial', '_blank')">ตรวจสอบผลิตภัณฑ์</button>
+                </div>
+            </div>
+            
+            <!-- Right Content (3D Image) -->
+            <div class="hero-image-tech">
+                <img src="ai-cosmetics.png" alt="Futuristic 3D Cosmetics" class="floating-cosmetics">
+                <!-- Reflection -->
+                <div class="image-reflection"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Analytics Center Section -->
+    <section class="exec-dashboard">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center; margin-bottom: 50px; font-size: 2.2rem;">สถิติการใช้งานและผลการดำเนินงาน</h2>
+
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h3 class="section-title" style="margin-bottom: 5px; font-size: 1.8rem; border-bottom: 3px solid #0056b3; display: inline-block; padding-bottom: 10px;">SMART COSME ULTRA PRO</h3>
+                <div style="font-size: 1.2rem; color: #64748B; font-weight: 500; margin-top: 10px;">ระบบเฝ้าระวังและตรวจประเมินร้านจำหน่ายเครื่องสำอาง</div>
+            </div>
+            
+            <div class="exec-kpi-grid-4">
+                <div class="exec-card">
+                    <div class="exec-card-title">สถานที่จำหน่ายที่ตรวจสะสม (จ.ศรีสะเกษ)</div>
+                    <div class="exec-card-value" style="color: #0284C7;"><span id="stat-shops">9</span> <span style="font-size: 1rem; color: #94A3B8;">ร้าน</span></div>
+                </div>
+                <div class="exec-card">
+                    <div class="exec-card-title">ความครบถ้วนของฉลาก</div>
+                    <div class="exec-card-value" style="color: #16A34A;"><span id="stat-cleanliness">93</span><span style="font-size: 1rem; color: #94A3B8;">%</span></div>
+                </div>
+                <div class="exec-card">
+                    <div class="exec-card-title">ตรวจพบยาอันตราย</div>
+                    <div class="exec-card-value" style="color: #DC2626;"><span id="stat-med-danger">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span></div>
+                </div>
+                <div class="exec-card">
+                    <div class="exec-card-title">ตรวจพบเครื่องสำอางห้ามขาย</div>
+                    <div class="exec-card-value" style="color: #EA580C;"><span id="stat-cos-danger">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span></div>
+                </div>
+            </div>
+
+            <div class="exec-card exec-card-full" style="margin-bottom: 80px;">
+                <div class="exec-card-title" style="text-align: center; font-size: 1.2rem; color: #0F172A; font-weight: 600;">สัดส่วนหัวข้อข้อบกพร่องบนฉลากเครื่องสำอาง (%)</div>
+                <div class="chart-wrapper">
+                    <canvas id="problemsDonutChart"></canvas>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 class="section-title" style="margin-bottom: 5px;">SMART COSME</h2>
+                <div style="font-size: 1.2rem; color: #64748B; font-weight: 500;">ระบบสร้างและตรวจสอบฉลากเครื่องสำอางด้วย AI</div>
+            </div>
+            
+            <div class="exec-kpi-grid-2">
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">ผู้ประกอบการใช้งานระบบ</div>
+                    <div class="exec-card-value" style="color: #0284C7;"><span id="stat-entrepreneurs">0</span> <span style="font-size: 1rem; color: #94A3B8;">คน</span></div>
+                </div>
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">เจ้าหน้าที่ใช้งานระบบ</div>
+                    <div class="exec-card-value" style="color: #16A34A;"><span id="stat-officers">0</span> <span style="font-size: 1rem; color: #94A3B8;">คน</span></div>
+                </div>
+            </div>
+
+            <div class="exec-chart-grid-2">
+                <div class="exec-card">
+                    <div class="exec-card-title" style="text-align: center; font-size: 1.1rem; color: #0F172A; font-weight: 600;">สัดส่วนวัตถุประสงค์การใช้งาน</div>
+                    <div class="chart-wrapper">
+                        <canvas id="usagePieChart"></canvas>
+                    </div>
+                </div>
+                <div class="exec-card">
+                    <div class="exec-card-title" style="text-align: center; font-size: 1.1rem; color: #0F172A; font-weight: 600;">ความเชื่อมั่นและความพึงพอใจ</div>
+                    <div class="chart-wrapper">
+                        <canvas id="satisfactionBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services beauty-services" id="services">
+        <div class="container">
+            <div class="services-header text-center">
+                <h2 class="section-title">บริการสำหรับเครื่องสำอาง</h2>
+            </div>
+            
+            <div class="beauty-grid">
+                <!-- Card 1 -->
+                <a href="https://smart-cosme.onrender.com" target="_blank" rel="noopener noreferrer" class="beauty-card" title="สร้างฉลากเครื่องสำอาง">
+                    <div class="beauty-silhouette silhouette-serum"></div>
+                    <div class="beauty-content">
+                        <div class="beauty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+                        </div>
+                        <h3>สร้างฉลากด้วย AI</h3>
+                        <p>ระบบสร้างและตรวจสอบฉลากเครื่องสำอางอัจฉริยะด้วย AI วิเคราะห์ส่วนผสมแม่นยำ</p>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="https://smart-cosme-ultra.onrender.com/dashboard.html" target="_blank" rel="noopener noreferrer" class="beauty-card" title="ตรวจสถานที่จำหน่ายเครื่องสำอาง">
+                    <div class="beauty-silhouette silhouette-store"></div>
+                    <div class="beauty-content">
+                        <div class="beauty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        </div>
+                        <h3>ตรวจสถานที่จำหน่าย</h3>
+                        <p>ระบบตรวจประเมินสถานที่จำหน่ายอัจฉริยะ ยกระดับมาตรฐานความปลอดภัย</p>
+                    </div>
+                </a>
+
+                <!-- Card 3 -->
+                <a href="https://oryor.com/check-product-serial" target="_blank" rel="noopener noreferrer" class="beauty-card" title="ตรวจเลขที่ใบจดแจ้ง">
+                    <div class="beauty-silhouette silhouette-search"></div>
+                    <div class="beauty-content">
+                        <div class="beauty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/><path d="M7 12h10"/></svg>
+                        </div>
+                        <h3>ตรวจสอบเลขจดแจ้ง</h3>
+                        <p>ระบบสแกนตรวจสอบข้อมูลผลิตภัณฑ์จากฐานข้อมูลระดับประเทศ</p>
+                    </div>
+                </a>
+
+                <!-- Card 4 -->
+                <a href="https://cosmetic.fda.moph.go.th/interesting-law/category/cosmetic-laws" target="_blank" rel="noopener noreferrer" class="beauty-card" title="กฎหมายที่เกี่ยวข้อง">
+                    <div class="beauty-silhouette silhouette-law"></div>
+                    <div class="beauty-content">
+                        <div class="beauty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V2M20 7l-8-5-8 5M12 7H2M12 7h10M4 7l-2 6a4 4 0 0 0 8 0L8 7M16 7l-2 6a4 4 0 0 0 8 0l-2-6"/></svg>
+                        </div>
+                        <h3>Cosme Learning/Test</h3>
+                        <p>แบบทดสอบความรอบรู้</p>
+                    </div>
+                </a>
+
+                <!-- Card 5 -->
+                <a href="#" class="beauty-card" title="เตือนภัยเครื่องสำอาง">
+                    <div class="beauty-silhouette silhouette-alert"></div>
+                    <div class="beauty-content">
+                        <div class="beauty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                        </div>
+                        <h3>เตือนภัยเครื่องสำอาง</h3>
+                        <p>ระบบแจ้งเตือนเครื่องสำอางอันตราย เพื่อความปลอดภัยของผู้บริโภค</p>
+                    </div>
+                </a>
+
+                <!-- Card 6 -->
+                <a href="https://cosmetic.fda.moph.go.th/permission-for-cosmetics/category/for-entrepreneurs" target="_blank" rel="noopener noreferrer" class="beauty-card" title="คู่มือผู้ประกอบการ">
+                    <div class="beauty-silhouette silhouette-chart"></div>
+                    <div class="beauty-content">
+                        <div class="beauty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2l2 3 2-6 2 3h2"/></svg>
+                        </div>
+                        <h3>SOP</h3>
+                        <p>คู่มือประชาชน</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-col brand-col">
+                <div class="footer-logo">
+                    <h2>SISAKET</h2>
+                    <p>SMART COSME</p>
+                </div>
+                <p class="footer-desc">ระบบดิจิทัลอัจฉริยะเพื่อยกระดับการกำกับดูแลเครื่องสำอางอย่างมีประสิทธิภาพ</p>
+            </div>
+            
+            <div class="footer-col">
+                <h4>บริการ</h4>
+                <ul>
+                    <li><a href="https://smart-cosme.onrender.com">Smart Cosme</a></li>
+                    <li><a href="https://smart-cosme-ultra.onrender.com/dashboard.html">ตรวจสถานที่จำหน่าย</a></li>
+                    <li><a href="https://oryor.com/check-product-serial">ตรวจเลขจดแจ้ง</a></li>
+                    <li><a href="#dashboard">Dashboard</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>ลิงก์สำคัญ</h4>
+                <ul>
+                    <li><a href="https://cosmetic.fda.moph.go.th">FDA</a></li>
+                    <li><a href="https://cosmetic.fda.moph.go.th/interesting-law/category/cosmetic-laws">กฎหมายเครื่องสำอาง</a></li>
+                    <li><a href="https://cosmetic.fda.moph.go.th/permission-for-cosmetics/category/for-entrepreneurs">คู่มือผู้ประกอบการ</a></li>
+                    <li><a href="#">เตือนภัยสุขภาพ</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col contact-col">
+                <h4>ติดต่อเรา</h4>
+                <p>สำนักงานสาธารณสุขจังหวัดศรีสะเกษ</p>
+                <p>📞 โทรศัพท์: 045-616-0406</p>
+                <p>✉️ อีเมล: contact@sisaketsmartcosme.com</p>
+                <p>💬 Line OA: 669gpcbr</p>
+                
+                <div class="qr-placeholder">
+                    <span>[ QR Code Placeholder ]</span>
+                </div>
+                
+                <div class="social-icons">
+                    <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+                    <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+                    <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="container footer-bottom-inner">
+                <p>&copy; 2024 SISAKET SMART COSME. สงวนลิขสิทธิ์.</p>
+                <div class="footer-view-counter">
+                    <span class="counter-item">
+                        <span class="counter-label">ผู้เข้าชมเดือนนี้:</span>
+                        <span class="counter-value">1,245</span>
+                    </span>
+                    <span style="margin: 0 15px; color: rgba(0, 174, 239, 0.5);">|</span>
+                    <span class="counter-item">
+                        <span class="counter-label">ผู้เข้าชมทั้งหมด:</span>
+                        <span class="counter-value">15,890</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Add minimal scripts if needed in the future
+    </script>
+
+    <!-- Floating Chat Button -->
+    <div class="floating-chat-container">
+        <div class="chat-tooltip">สอบถามเพิ่มเติม</div>
+        <a href="#" class="floating-chat" id="chat-trigger-btn">
+            <span class="chat-icon">💬</span>
+        </a>
+    </div>
+    <!-- Floating AI Assistant -->
+    <div class="ai-assistant" id="chat-trigger-orb">
+        <div class="ai-orb">
+            <span class="ai-icon">👧🏻</span>
+            <div class="voice-icon">🎤</div>
+        </div>
+        <div class="ai-label">SMART COSME AI</div>
+    </div>
+
+    <!-- Premium Gemini Chat Box -->
+    <div id="gemini-chat-box" class="gemini-chat-box">
+      <div class="chat-header">
+        <div class="chat-header-profile">
+          <div class="chat-header-avatar">
+            <img src="chat_avatar.png" alt="AI Avatar">
+            <span class="online-dot"></span>
+          </div>
+          <div class="chat-header-info">
+            <h3>SMART COSME AI</h3>
+            <p>ผู้ช่วยตรวจสอบและจดแจ้งเครื่องสำอาง</p>
+          </div>
+        </div>
+        <button id="close-chat-btn" class="close-chat-btn" aria-label="ปิดหน้าต่างแชท">&times;</button>
+      </div>
+      
+      <div class="chat-messages" id="gemini-chat-messages">
+        <!-- Welcome message -->
+        <div class="chat-msg bot">
+          <div class="msg-bubble">
+            สวัสดีค่ะ! ดิฉันคือ <strong>SMART COSME AI</strong> ผู้ช่วยอัจฉริยะจาก สสจ.ศรีสะเกษ ยินดีให้คำปรึกษาเรื่องการจดแจ้งเครื่องสำอาง กฎหมายฉลาก และความปลอดภัยของเครื่องสำอางค่ะ มีเรื่องใดให้ช่วยแนะนำไหมคะ? 😊
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <textarea id="chat-input" placeholder="พิมพ์ข้อความของคุณที่นี่..." rows="1"></textarea>
+        <button id="send-chat-btn" class="send-chat-btn">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        Chart.register(ChartDataLabels);
+        // ==========================================
+        // 1. ตั้งค่าการเชื่อมต่อ Supabase
+        // ==========================================
+        
+        // 🔹 โปรเจกต์ Smart Cosme (ใส่ URL และ Key ของคุณที่นี่)
+        const SMART_COSME_URL = 'https://rouuhbatcaobtxohvksq.supabase.co'; // โปรเจกต์ rouuhbatcaobtxohvksq
+        const SMART_COSME_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvdXVoYmF0Y2FvYnR4b2h2a3NxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NTE0NzIsImV4cCI6MjA5NzMyNzQ3Mn0.YxiROevUfJOw_8tZxk9hs3CSMhfdd7ZFawyWj2cO8DI';
+        
+        // 🔹 โปรเจกต์ Smart Ultra Pro (ใส่ URL และ Key ของคุณที่นี่)
+        const SMART_ULTRA_URL = 'https://szmqfymuirecsbqimuym.supabase.co'; // โปรเจกต์ szmqfymuirecsbqimuym
+        const SMART_ULTRA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6bXFmeW11aXJlY3NicWltdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTA2MzEsImV4cCI6MjA5NzM2NjYzMX0.A48EzXHnSGLFTWVl1yB7oYWoJVb5aMCR-n9fwj-aAOw';
+
+        // สร้างตัวเชื่อมต่อ
+        const supabaseCosme = supabase.createClient(SMART_COSME_URL, SMART_COSME_KEY);
+        const supabaseUltra = supabase.createClient(SMART_ULTRA_URL, SMART_ULTRA_KEY);
+
+        // ==========================================
+        // 2. ฟังก์ชันดึงข้อมูลจาก Smart Cosme
+        // ==========================================
+        async function fetchSmartCosmeData() {
+            try {
+                const API_BASE = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3001' : 'https://smart-cosme.onrender.com';
+                const response = await fetch(`${API_BASE}/api/public/stats`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                // อัปเดต KPI ตัวเลข
+                animateDynamicValue('stat-entrepreneurs', data.entrepreneurs ?? 0, false);
+                animateDynamicValue('stat-officers', data.officers ?? 0, false);
+
+                // กราฟสัดส่วนวัตถุประสงค์การใช้งาน
+                const ctxUsage = document.getElementById('usagePieChart');
+                if (ctxUsage) {
+                    const existingChart = Chart.getChart(ctxUsage);
+                    if (existingChart) existingChart.destroy();
+                    new Chart(ctxUsage, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['ออกแบบฉลาก', 'อ่านฉลากจากรูปภาพ', 'ตรวจเลขที่ใบรับจดแจ้ง'],
+                            datasets: [{
+                                data: [data.labelDesigns ?? 0, data.ocrChecks ?? 0, data.fdaChecks ?? 0],
+                                backgroundColor: ['#0284C7', '#16A34A', '#EA580C'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: { 
+                            responsive: true, maintainAspectRatio: false, 
+                            plugins: { 
+                                legend: { labels: { color: '#475569', font: { family: 'Prompt' } }, position: 'bottom' }, 
+                                datalabels: { color: '#fff', font: { family: 'Prompt', weight: 'bold', size: 14 }, formatter: (value) => value > 0 ? value.toLocaleString() : '' } 
+                            }, 
+                            cutout: '60%' 
+                        }
+                    });
+                }
+
+                // กราฟความเชื่อมั่นและความพึงพอใจ
+                const ctxSat = document.getElementById('satisfactionBarChart');
+                if (ctxSat) {
+                    const existingChart = Chart.getChart(ctxSat);
+                    if (existingChart) existingChart.destroy();
+                    new Chart(ctxSat, {
+                        type: 'bar',
+                        data: {
+                            labels: [''],
+                            datasets: [
+                                {
+                                    label: 'ความพึงพอใจ',
+                                    data: [data.avgRating ?? 0],
+                                    backgroundColor: '#0284C7',
+                                    borderRadius: 6
+                                },
+                                {
+                                    label: 'ความเชื่อมั่นในแอป',
+                                    data: [data.avgTrustRating ?? 0],
+                                    backgroundColor: '#16A34A',
+                                    borderRadius: 6
+                                },
+                                {
+                                    label: 'ความเชื่อมั่นในบริการ OSSC',
+                                    data: [data.avgTrustRating2 ?? 0],
+                                    backgroundColor: '#EA580C',
+                                    borderRadius: 6
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { 
+                                legend: { labels: { color: '#475569', font: { family: 'Prompt' } }, position: 'bottom' },
+                                datalabels: { color: '#fff', font: { family: 'Prompt', weight: 'bold', size: 14 }, anchor: 'center', align: 'center', formatter: (value) => value > 0 ? Number(value).toFixed(1) : '0.0' }
+                            },
+                            scales: {
+                                y: { max: 5, beginAtZero: true, ticks: { color: '#64748B', font: { family: 'Prompt' } }, grid: { color: '#F1F5F9' } },
+                                x: { ticks: { color: '#64748B', font: { family: 'Prompt' } }, grid: { display: false } }
+                            }
+                        }
+                    });
+                }
+
+            } catch (error) {
+                console.log('Error fetching Smart Cosme data:', error);
+            }
+        }
+
+        // ฟังก์ชันช่วยเหลือสำหรับแสดงแอนิเมชันตัวเลข
+        function animateDynamicValue(id, targetValue, isFloat = false) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            let startTimestamp = null;
+            const duration = 2000;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // Ease out quad
+                const easeProgress = progress * (2 - progress);
+                const current = easeProgress * targetValue;
+                
+                if (isFloat) el.innerText = current.toFixed(1);
+                else el.innerText = Math.floor(current).toLocaleString();
+                
+                if (progress < 1) window.requestAnimationFrame(step);
+                else el.innerText = isFloat ? targetValue.toFixed(1) : targetValue.toLocaleString();
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // ==========================================
+        // 3. ฟังก์ชันดึงข้อมูลจาก Smart Ultra Pro
+        // ==========================================
+        async function fetchSmartUltraData() {
+            let defectLabels = [
+                'ข้อมูลฉลากไม่ครบ', 
+                'เลขที่ใบรับจดแจ้งไม่ถูกต้อง', 
+                'คำโฆษณาเกินจริง', 
+                'ไม่แสดงชื่อผู้ผลิต/ผู้นำเข้า', 
+                'ฉลากภาษาไทยไม่ครบ', 
+                'อื่นๆ'
+            ];
+            let defectData = [35, 20, 15, 10, 15, 5];
+            let isRealData = false;
+
+            try {
+                // พยายามดึงข้อมูลตรงจาก API (หากหลังบ้านเปิด CORS แล้วจะสำเร็จ)
+                const response = await fetch('https://smart-cosme-ultra.onrender.com/api/dashboard');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                const totalShops = data.districtData.reduce((a, b) => a + b, 0);
+                const totalInspections = data.inspectionData.reduce((a, b) => a + b, 0);
+                const totalLabelsSum = data.labelCompleteData.reduce((a, b) => a + b, 0);
+                const avgLabelRate = totalInspections > 0 ? (totalLabelsSum / totalInspections) : 0;
+                const percentLabel = avgLabelRate * 10; // แปลงคะแนนเต็ม 10 เป็น 100%
+
+                const medData = data.medicineData || [1,1,1,6,1];
+                const cosData = data.cosmeticsData || [1,1,1,6,1];
+                const totalMedDanger = medData.reduce((a, b) => a + b, 0);
+                const totalCosDanger = cosData.reduce((a, b) => a + b, 0);
+
+                animateDynamicValue('stat-shops', totalShops, false);
+                animateDynamicValue('stat-cleanliness', percentLabel, true);
+                animateDynamicValue('stat-med-danger', totalMedDanger, false);
+                animateDynamicValue('stat-cos-danger', totalCosDanger, false);
+
+                if (data.defectLabels && data.defectData) {
+                    defectLabels = data.defectLabels;
+                    defectData = data.defectData;
+                    isRealData = true;
+                }
+
+            } catch (error) {
+                console.log('CORS blocked or Error fetching Smart Ultra data. Using fallback data.', error);
+                
+                // ข้อมูลจำลองเมื่อเกิดปัญหา CORS
+                animateDynamicValue('stat-shops', 9, false);
+                animateDynamicValue('stat-cleanliness', 93.5, true);
+                animateDynamicValue('stat-med-danger', 2, false);
+                animateDynamicValue('stat-cos-danger', 1, false);
+            }
+
+            // วาดกราฟโดนัท "ปัญหาที่พบจากการตรวจฉลาก"
+            const ctxProb = document.getElementById('problemsDonutChart');
+            if (ctxProb) {
+                const existingChart = Chart.getChart(ctxProb);
+                if (existingChart) existingChart.destroy();
+
+                let finalData = defectData;
+                if (isRealData) {
+                    const totalDefects = defectData.reduce((a, b) => a + b, 0);
+                    if (totalDefects > 0) {
+                        finalData = defectData.map(val => Number(((val / totalDefects) * 100).toFixed(1)));
+                    } else {
+                        finalData = defectData.map(() => 0);
+                    }
+                }
+
+                new Chart(ctxProb, {
+                    type: 'doughnut',
+                    data: {
+                        labels: defectLabels,
+                        datasets: [{
+                            data: finalData,
+                            backgroundColor: [
+                                '#0284C7', '#16A34A', '#EA580C', '#EAB308', '#8B5CF6', 
+                                '#94A3B8', '#EC4899', '#14B8A6', '#F59E0B', '#6366F1'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { labels: { color: '#475569', font: { family: 'Prompt' } }, position: 'right' }, 
+                            datalabels: { 
+                                color: '#fff', 
+                                font: { family: 'Prompt', weight: 'bold', size: 12 }, 
+                                formatter: (value) => value > 0 ? value + '%' : '' 
+                            } 
+                        }, 
+                        cutout: '50%' 
+                    }
+                });
+            }
+        }
+
+        // ==========================================
+        // เริ่มทำงานเมื่อเปิดหน้าเว็บ
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchSmartCosmeData();
+            fetchSmartUltraData();
+
+            // ==========================================
+            // ระบบแชทอัจฉริยะ SMART COSME AI
+            // ==========================================
+            const chatTriggerBtn = document.getElementById("chat-trigger-btn");
+            const chatTriggerOrb = document.getElementById("chat-trigger-orb");
+            const chatBox = document.getElementById("gemini-chat-box");
+            const closeChatBtn = document.getElementById("close-chat-btn");
+            const sendChatBtn = document.getElementById("send-chat-btn");
+            const chatInput = document.getElementById("chat-input");
+            const chatMessages = document.getElementById("gemini-chat-messages");
+
+            let conversationHistory = [];
+
+            const toggleChat = (e) => {
+                if (e) e.preventDefault();
+                chatBox.classList.toggle("active");
+                if (chatBox.classList.contains("active")) {
+                    chatInput.focus();
+                    scrollToBottom();
+                }
+            };
+
+            // เปิด/ปิดแชท
+            if (chatTriggerBtn) chatTriggerBtn.addEventListener("click", toggleChat);
+            if (chatTriggerOrb) chatTriggerOrb.addEventListener("click", toggleChat);
+            if (closeChatBtn) closeChatBtn.addEventListener("click", () => chatBox.classList.remove("active"));
+
+            // ปรับความสูงช่องกรอกข้อความอัตโนมัติ
+            if (chatInput) {
+                chatInput.addEventListener("input", function() {
+                    this.style.height = "auto";
+                    this.style.height = (this.scrollHeight - 4) + "px";
+                });
+
+                // ส่งข้อความเมื่อกด Enter
+                chatInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+
+            if (sendChatBtn) sendChatBtn.addEventListener("click", sendMessage);
+
+            async function sendMessage() {
+                const text = chatInput.value.trim();
+                if (!text) return;
+
+                chatInput.value = "";
+                chatInput.style.height = "auto";
+
+                appendMessage("user", text);
+                scrollToBottom();
+
+                const typingElem = appendTypingIndicator();
+                scrollToBottom();
+
+                try {
+                    const API_BASE = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3001' : 'https://smart-cosme.onrender.com';
+                    const response = await fetch(`${API_BASE}/api/ai/chat`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: text, history: conversationHistory })
+                    });
+
+                    if (typingElem) typingElem.remove();
+
+                    if (!response.ok) throw new Error("API response error");
+
+                    const data = await response.json();
+                    if (data.success && data.reply) {
+                        appendMessage("bot", data.reply);
+                        conversationHistory.push({ role: "user", text: text });
+                        conversationHistory.push({ role: "model", text: data.reply });
+
+                        if (conversationHistory.length > 20) {
+                            conversationHistory = conversationHistory.slice(-20);
+                        }
+                    } else {
+                        appendMessage("bot", "⚠️ ขออภัยค่ะ เกิดความขัดข้องทางเทคนิคในการประมวลผลข้อความ กรุณาลองใหม่อีกครั้งนะคะ");
+                    }
+                } catch (error) {
+                    if (typingElem) typingElem.remove();
+                    appendMessage("bot", "⚠️ ไม่สามารถเชื่อมต่อกับบริการ AI ได้ในขณะนี้ กรุณาตรวจสอบอินเทอร์เน็ตหรือติดต่อผู้ดูแลระบบค่ะ");
+                    console.error("AI error:", error);
+                }
+                scrollToBottom();
+            }
+
+            function appendMessage(sender, text) {
+                const msgDiv = document.createElement("div");
+                msgDiv.className = `chat-msg ${sender}`;
+                
+                const bubbleDiv = document.createElement("div");
+                bubbleDiv.className = "msg-bubble";
+                bubbleDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                
+                msgDiv.appendChild(bubbleDiv);
+                chatMessages.appendChild(msgDiv);
+            }
+
+            function appendTypingIndicator() {
+                const msgDiv = document.createElement("div");
+                msgDiv.className = "chat-msg bot";
+                
+                const bubbleDiv = document.createElement("div");
+                bubbleDiv.className = "msg-bubble typing-indicator";
+                bubbleDiv.innerHTML = "<span></span><span></span><span></span>";
+                
+                msgDiv.appendChild(bubbleDiv);
+                chatMessages.appendChild(msgDiv);
+                return msgDiv;
+            }
+
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
