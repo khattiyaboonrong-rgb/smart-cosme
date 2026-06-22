@@ -1490,8 +1490,8 @@ body::after {
         </div>
       </div>
 
-      <div class="form-group" style="margin-top:6px;">
-        <label class="form-label">ระดับความพึงพอใจต่อการใช้งานระบบ</label>
+      <div class="form-group" style="margin-top:6px; background:linear-gradient(135deg,rgba(255,215,0,0.07),rgba(255,193,7,0.04)); border:1.5px solid rgba(255,215,0,0.25); border-radius:14px; padding:14px 16px;">
+        <label class="form-label" style="font-weight:700; color:#e8c84a; margin-bottom:10px; display:block; font-size:1rem;">⭐ ระดับความพึงพอใจ</label>
         <div class="stars-row">
           <button class="star-btn" id="star1" onclick="setRating(1)" aria-label="1 ดาว">⭐</button>
           <button class="star-btn" id="star2" onclick="setRating(2)" aria-label="2 ดาว">⭐</button>
@@ -1502,16 +1502,34 @@ body::after {
         <div class="rating-label" id="ratingLabel"></div>
       </div>
 
-      <div class="form-group" style="margin-top:6px;">
-        <label class="form-label">ระดับความเชื่อมั่นต่อระบบ</label>
-        <div class="stars-row">
-          <button class="star-btn-trust" id="trustStar1" onclick="setTrustRating(1)" aria-label="1 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
-          <button class="star-btn-trust" id="trustStar2" onclick="setTrustRating(2)" aria-label="2 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
-          <button class="star-btn-trust" id="trustStar3" onclick="setTrustRating(3)" aria-label="3 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
-          <button class="star-btn-trust" id="trustStar4" onclick="setTrustRating(4)" aria-label="4 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
-          <button class="star-btn-trust" id="trustStar5" onclick="setTrustRating(5)" aria-label="5 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+      <div class="form-group" style="margin-top:6px; background:linear-gradient(135deg,rgba(255,215,0,0.07),rgba(255,193,7,0.04)); border:1.5px solid rgba(255,215,0,0.25); border-radius:14px; padding:14px 16px;">
+        <label class="form-label" style="font-weight:700; color:#e8c84a; margin-bottom:10px; display:block; font-size:1rem;">⭐ ระดับความเชื่อมั่น</label>
+
+        <!-- ข้อที่ 1: ความเชื่อมั่นในแอปพลิเคชัน -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:0.95rem; color:#60a5fa; margin-bottom:6px; font-weight:700; letter-spacing:0.01em;">1. ความเชื่อมั่นในแอปพลิเคชัน</div>
+          <div class="stars-row">
+            <button class="star-btn-trust" id="trustStar1" onclick="setTrustRating(1)" aria-label="1 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust" id="trustStar2" onclick="setTrustRating(2)" aria-label="2 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust" id="trustStar3" onclick="setTrustRating(3)" aria-label="3 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust" id="trustStar4" onclick="setTrustRating(4)" aria-label="4 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust" id="trustStar5" onclick="setTrustRating(5)" aria-label="5 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+          </div>
+          <div class="rating-label" id="trustRatingLabel"></div>
         </div>
-        <div class="rating-label" id="trustRatingLabel"></div>
+
+        <!-- ข้อที่ 2: ความเชื่อมั่นในการบริการ OSSC -->
+        <div style="padding-top:10px; border-top:1px solid rgba(255,215,0,0.25);">
+          <div style="font-size:0.95rem; color:#60a5fa; margin-bottom:6px; font-weight:700; letter-spacing:0.01em;">2. ความเชื่อมั่นในการบริการ OSSC</div>
+          <div class="stars-row">
+            <button class="star-btn-trust2" id="trustStar2_1" onclick="setTrustRating2(1)" aria-label="1 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust2" id="trustStar2_2" onclick="setTrustRating2(2)" aria-label="2 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust2" id="trustStar2_3" onclick="setTrustRating2(3)" aria-label="3 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust2" id="trustStar2_4" onclick="setTrustRating2(4)" aria-label="4 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+            <button class="star-btn-trust2" id="trustStar2_5" onclick="setTrustRating2(5)" aria-label="5 ดาว" style="font-size:1.9rem; background:none; border:none; cursor:pointer; transition:transform 0.15s, filter 0.15s; filter:grayscale(1) opacity(0.4); line-height:1;">⭐</button>
+          </div>
+          <div class="rating-label" id="trustRating2Label"></div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -1538,6 +1556,7 @@ body::after {
    ============================================================ */
 let rating = 0;
 let trustRating = 0;
+let trustRating2 = 0;
 let ocrText = "";
 let selectedFile = null;
 let lastScore = 0;
@@ -2620,6 +2639,20 @@ function setTrustRating(r) {
   document.getElementById("trustRatingLabel").textContent = RATING_LABELS[r] || "";
 }
 
+function setTrustRating2(r) {
+  trustRating2 = r;
+  document.querySelectorAll(".star-btn-trust2").forEach((s,i) => {
+    if (i < r) {
+      s.style.filter = "none";
+      s.style.transform = "scale(1.08)";
+    } else {
+      s.style.filter = "grayscale(1) opacity(0.4)";
+      s.style.transform = "none";
+    }
+  });
+  document.getElementById("trustRating2Label").textContent = RATING_LABELS[r] || "";
+}
+
 /* ============================================================
    SUBMIT FEEDBACK
    ============================================================ */
@@ -2630,7 +2663,8 @@ async function submitFeedback() {
   const fb = document.getElementById("feedback").value.trim();
 
   if (rating === 0) { showToast("⚠️ กรุณาให้คะแนนความพึงพอใจต่อการใช้งาน"); return; }
-  if (trustRating === 0) { showToast("⚠️ กรุณาให้คะแนนความเชื่อมั่นต่อระบบ"); return; }
+  if (trustRating === 0) { showToast("⚠️ กรุณาให้คะแนนความเชื่อมั่นในแอปพลิเคชัน (ข้อ 1)"); return; }
+  if (trustRating2 === 0) { showToast("⚠️ กรุณาให้คะแนนความเชื่อมั่นในการบริการ OSSC (ข้อ 2)"); return; }
 
   const btn = document.getElementById("fbBtn");
   btn.disabled = true;
@@ -2644,21 +2678,21 @@ async function submitFeedback() {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': 'Bearer ' + token } : {})
       },
-      body: JSON.stringify({ name, contact, product, rating, trustRating, comment: fb })
+      body: JSON.stringify({ name, contact, product, rating, trustRating, trustRating2, comment: fb })
     });
     
     if (!res.ok) throw new Error('API Error');
   } catch(e) {
     // Save to local fallback if API fails
     const records = JSON.parse(localStorage.getItem("cosme_feedback") || "[]");
-    records.push({ name, contact, product, rating, trustRating, feedback: fb, date: new Date().toLocaleString("th-TH") });
+    records.push({ name, contact, product, rating, trustRating, trustRating2, feedback: fb, date: new Date().toLocaleString("th-TH") });
     localStorage.setItem("cosme_feedback", JSON.stringify(records));
   }
 
   setTimeout(() => {
     document.getElementById("fb-status").innerHTML = `
       <div class="result-box result-pass" style="margin-bottom:10px;">
-        ✅ ขอบคุณสำหรับข้อมูล! พึงพอใจต่อการใช้งาน ${rating} ดาว ⭐ / เชื่อมั่นต่อระบบ ${trustRating} ดาว ⭐<br>
+        ✅ ขอบคุณสำหรับข้อมูล! พึงพอใจ ${rating} ดาว ⭐ / เชื่อมั่นแอป ${trustRating} ดาว ⭐ / เชื่อมั่น OSSC ${trustRating2} ดาว ⭐<br>
         <small style="opacity:0.7;">บันทึกสำเร็จเรียบร้อยแล้ว</small>
       </div>`;
     btn.disabled = false;
@@ -2670,13 +2704,19 @@ async function submitFeedback() {
     document.getElementById("feedback").value = "";
     rating = 0;
     trustRating = 0;
+    trustRating2 = 0;
     document.querySelectorAll(".star-btn").forEach(s => s.className = "star-btn");
     document.querySelectorAll(".star-btn-trust").forEach(s => {
       s.style.filter = "grayscale(1) opacity(0.4)";
       s.style.transform = "none";
     });
+    document.querySelectorAll(".star-btn-trust2").forEach(s => {
+      s.style.filter = "grayscale(1) opacity(0.4)";
+      s.style.transform = "none";
+    });
     document.getElementById("ratingLabel").textContent = "";
     document.getElementById("trustRatingLabel").textContent = "";
+    document.getElementById("trustRating2Label").textContent = "";
     showToast("⭐ บันทึกข้อมูลเรียบร้อยแล้ว ขอบคุณ!");
   }, 900);
 }

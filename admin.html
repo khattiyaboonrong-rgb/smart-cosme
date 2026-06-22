@@ -59,19 +59,21 @@ body{font-family:'Prompt',sans-serif;background:var(--navy);color:var(--white);m
 
 /* ===== STAT CARDS ===== */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px;}
-.stat-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;transition:var(--trans);}
-.stat-card:hover{border-color:rgba(255,255,255,0.18);transform:translateY(-2px);}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;transition:var(--trans);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.stat-card:hover{border-color:#cbd5e1;transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.1);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
 .stat-blue::before{background:linear-gradient(90deg,#2563eb,#60a5fa);}
 .stat-green::before{background:linear-gradient(90deg,#16a34a,#22c55e);}
 .stat-gold::before{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
 .stat-red::before{background:linear-gradient(90deg,#dc2626,#ef4444);}
 .stat-purple::before{background:linear-gradient(90deg,#7c3aed,#a78bfa);}
 .stat-teal::before{background:linear-gradient(90deg,#0d9488,#2dd4bf);}
-.stat-num{font-size:2rem;font-weight:800;line-height:1;margin-bottom:4px;}
-.stat-label{font-size:0.72rem;color:rgba(255,255,255,0.45);font-weight:500;}
-.stat-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:2rem;opacity:0.15;}
-.stat-sub{font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:4px;}
+.stat-pink::before{background:linear-gradient(90deg,#db2777,#f472b6);}
+.stat-indigo::before{background:linear-gradient(90deg,#4338ca,#818cf8);}
+.stat-num{font-size:2rem;font-weight:800;line-height:1;margin-bottom:4px;color:#1e293b;}
+.stat-label{font-size:0.78rem;color:#475569;font-weight:600;margin-top:2px;}
+.stat-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:2rem;opacity:0.12;}
+.stat-sub{font-size:0.7rem;color:#94a3b8;margin-top:5px;}
 
 /* ===== TABLE ===== */
 .card{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:18px;}
@@ -490,7 +492,7 @@ async function loadOverview() {
       <div class="stat-card stat-blue">
         <div class="stat-num">${s.total} <span style="font-size:1.1rem; font-weight:normal;">ราย</span></div>
         <div class="stat-label">ผู้ประกอบการทั้งหมด</div>
-        <div class="stat-sub">ผู้ประกอบการ: ${s.total} | เจ้าหน้าที่: ${s.totalAdmins || 0}</div>
+        <div class="stat-sub">ประกอบการ: ${s.total} | เจ้าหน้าที่: ${s.totalAdmins || 0}</div>
         <div class="stat-icon">👥</div>
       </div>
       <div class="stat-card stat-green">
@@ -505,20 +507,32 @@ async function loadOverview() {
       </div>
       <div class="stat-card stat-gold">
         <div class="stat-num">${s.totalLabels}</div>
-        <div class="stat-label">ฉลากที่สร้าง</div>
+        <div class="stat-label">ออกแบบฉลาก</div>
         <div class="stat-icon">🏷️</div>
       </div>
       <div class="stat-card stat-purple">
-        <div class="stat-num">${s.totalFeedback}</div>
-        <div class="stat-label">ความพึงพอใจ/ความเชื่อมั่น</div>
-        <div class="stat-sub">พึงพอใจ: ${s.avgRating ? s.avgRating.toFixed(1) : '-'}⭐ / เชื่อมั่น: ${s.avgTrustRating ? s.avgTrustRating.toFixed(1) : '-'}⭐</div>
-        <div class="stat-icon">⭐</div>
+        <div class="stat-num">${s.avgRating ? s.avgRating.toFixed(1) : '-'} <span style="font-size:1.1rem;">⭐</span></div>
+        <div class="stat-label">ความพึงพอใจเฉลี่ย</div>
+        <div class="stat-sub">${s.totalFeedback || 0} รายการตอบแบบสอบถาม</div>
+        <div class="stat-icon">😊</div>
+      </div>
+      <div class="stat-card stat-pink">
+        <div class="stat-num">${s.avgTrustRating ? s.avgTrustRating.toFixed(1) : '-'} <span style="font-size:1.1rem;">⭐</span></div>
+        <div class="stat-label">ความเชื่อมั่นเฉลี่ย</div>
+        <div class="stat-sub">แอป ${s.avgTrustRating ? s.avgTrustRating.toFixed(1) : '-'}⭐ / OSSC ${s.avgTrustRating2 ? s.avgTrustRating2.toFixed(1) : '-'}⭐</div>
+        <div class="stat-icon">🛡️</div>
       </div>
       <div class="stat-card stat-teal">
-        <div class="stat-num">${s.totalChecks || 0}</div>
-        <div class="stat-label">ตรวจรูปภาพ / เลขจดแจ้ง</div>
-        <div class="stat-sub">สแกนฉลากและตรวจเลข อย.</div>
-        <div class="stat-icon">🔍</div>
+        <div class="stat-num">${s.ocrChecks ?? 0}</div>
+        <div class="stat-label">ตรวจฉลากจากรูปภาพ</div>
+        <div class="stat-sub">สแกนฉลากด้วย OCR</div>
+        <div class="stat-icon">🖼️</div>
+      </div>
+      <div class="stat-card stat-indigo">
+        <div class="stat-num">${s.fdaChecks ?? 0}</div>
+        <div class="stat-label">ตรวจเลขที่ใบจดแจ้ง</div>
+        <div class="stat-sub">ค้นหาข้อมูล อย.</div>
+        <div class="stat-icon">🔎</div>
       </div>
     `;
   }
@@ -783,7 +797,8 @@ async function loadFeedback() {
         <td>${f.product||'-'}</td>
         <td>
           <div style="font-size:0.8rem;">พึงพอใจ: ${'⭐'.repeat(f.rating||0)} (${f.rating||'-'})</div>
-          <div style="font-size:0.8rem; margin-top:3px;">เชื่อมั่น: ${'⭐'.repeat(f.trustRating||0)} (${f.trustRating||'-'})</div>
+          <div style="font-size:0.8rem; margin-top:3px;">เชื่อมั่น (แอป): ${'⭐'.repeat(f.trustRating||0)} (${f.trustRating||'-'})</div>
+          <div style="font-size:0.8rem; margin-top:3px;">เชื่อมั่น (OSSC): ${'⭐'.repeat(f.trustRating2||0)} (${f.trustRating2||'-'})</div>
         </td>
         <td style="font-size:0.78rem">${f.comment||'-'}</td>
         <td style="font-size:0.72rem;color:rgba(255,255,255,0.35)">${fmtDate(f.createdAt)}</td>
