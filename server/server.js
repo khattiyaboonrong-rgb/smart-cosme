@@ -636,6 +636,63 @@ app.get('/api/fda/check', async (req, res) => {
 });
 
 /* ============================================================
+   GEMINI AI ASSISTANT ENDPOINT
+   ============================================================ */
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+// ตรวจสอบว่ามี API Key หรือไม่
+const apiKey = process.env.GEMINI_API_KEY;
+let genAI = null;
+if (apiKey) {
+  genAI = new GoogleGenerativeAI(apiKey);
+  console.log("🤖 Gemini AI SDK initialized successfully.");
+} else {
+  console.warn("⚠️ Warning: GEMINI_API_KEY is not defined in .env");
+}
+
+// POST /api/ai/chat
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'กรุณากรอกข้อความคำถาม' });
+    }
+
+    if (!genAI) {
+      return res.status(503).json({ error: 'ระบบ AI ยังไม่ได้รับการกำหนดค่า API Key' });
+    }
+
+    // กำหนด Model (ใช้ gemini-2.5-flash ที่รองรับคีย์นี้)
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      // กำหนดลักษณะบทบาทให้ AI คุยเรื่องเครื่องสำอางและกฎหมายที่เกี่ยวข้องเท่านั้น
+      systemInstruction: "คุณคือ 'SMART COSME AI' ผู้ช่วยอัจฉริยะของสำนักงานสาธารณสุขจังหวัดศรีสะเกษ ให้บริการข้อมูล คำปรึกษา และตอบคำถามผู้ประกอบการและประชาชนทั่วไปเกี่ยวกับการจดแจ้งเครื่องสำอาง กฎหมายฉลากเครื่องสำอาง และความปลอดภัยของเครื่องสำอางในประเทศไทย ให้ตอบคำถามอย่างสุภาพ เป็นมิตร และเป็นวิชาการที่เข้าใจง่าย หากตอบข้อมูลทางกฎหมาย ให้กระชับและถูกต้องตามหลักเกณฑ์ของ อย.",
+    });
+
+    // เริ่มแชทพร้อมส่งประวัติการคุย (Chat History) เพื่อความต่อเนื่อง
+    const chat = model.startChat({
+      history: history ? history.map(h => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.text }]
+      })) : []
+    });
+
+    // ส่งข้อความไปหา AI
+    const result = await chat.sendMessage(message);
+    const responseText = result.response.text();
+
+    res.json({
+      success: true,
+      reply: responseText
+    });
+
+  } catch (err) {
+    console.error('Gemini API Error:', err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการประมวลผลของ AI' });
+  }
+});
+
+/* ============================================================
    HEALTH CHECK
    ============================================================ */
 app.get('/api/health', (req, res) => {
