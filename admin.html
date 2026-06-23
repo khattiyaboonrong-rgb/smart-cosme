@@ -70,7 +70,6 @@ body{font-family:'Prompt',sans-serif;background:var(--navy);color:var(--white);m
 .stat-teal::before{background:linear-gradient(90deg,#0d9488,#2dd4bf);}
 .stat-pink::before{background:linear-gradient(90deg,#db2777,#f472b6);}
 .stat-indigo::before{background:linear-gradient(90deg,#4338ca,#818cf8);}
-.stat-orange::before{background:linear-gradient(90deg,#ea580c,#f97316);}
 .stat-num{font-size:2rem;font-weight:800;line-height:1;margin-bottom:4px;color:#1e293b;}
 .stat-label{font-size:0.78rem;color:#475569;font-weight:600;margin-top:2px;}
 .stat-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:2rem;opacity:0.12;}
@@ -510,12 +509,6 @@ async function loadOverview() {
         <div class="stat-num">${s.totalLabels}</div>
         <div class="stat-label">ออกแบบฉลาก</div>
         <div class="stat-icon">🏷️</div>
-      </div>
-      <div class="stat-card stat-orange">
-        <div class="stat-num">${s.defectiveLabels ?? 0} <span style="font-size:1.1rem; font-weight:normal;">รายการ</span></div>
-        <div class="stat-label">ฉลากที่บกพร่อง</div>
-        <div class="stat-sub">รายงานเป็นจำนวนผลิตภัณฑ์</div>
-        <div class="stat-icon">⚠️</div>
       </div>
       <div class="stat-card stat-purple">
         <div class="stat-num">${s.avgRating ? s.avgRating.toFixed(1) : '-'} <span style="font-size:1.1rem;">⭐</span></div>
