@@ -65,19 +65,19 @@
             </div>
             
             <div class="exec-kpi-grid-4">
-                <div class="exec-card">
+                <div class="exec-card" style="align-items: center; text-align: center;">
                     <div class="exec-card-title">สถานที่จำหน่ายที่ตรวจสะสม (จ.ศรีสะเกษ)</div>
                     <div class="exec-card-value" style="color: #0ea5e9;"><span id="stat-shops">9</span> <span style="font-size: 1rem; color: #94A3B8;">ร้าน</span></div>
                 </div>
-                <div class="exec-card">
+                <div class="exec-card" style="align-items: center; text-align: center;">
                     <div class="exec-card-title">ความครบถ้วนของฉลาก</div>
                     <div class="exec-card-value" style="color: #059669;"><span id="stat-cleanliness">93</span><span style="font-size: 1rem; color: #94A3B8;">%</span></div>
                 </div>
-                <div class="exec-card">
+                <div class="exec-card" style="align-items: center; text-align: center;">
                     <div class="exec-card-title">ตรวจพบเครื่องสำอางห้ามจำหน่ายตามประกาศ</div>
                     <div class="exec-card-value" style="color: #ef4444;"><span id="stat-prohibited-shops">0</span> <span style="font-size: 1rem; color: #94A3B8;">ร้าน</span></div>
                 </div>
-                <div class="exec-card">
+                <div class="exec-card" style="align-items: center; text-align: center;">
                     <div class="exec-card-title">ฉลากที่บกพร่อง</div>
                     <div class="exec-card-value" style="color: #f59e0b;"><span id="stat-defective-products">0</span> <span style="font-size: 1rem; color: #94A3B8;">ผลิตภัณฑ์</span></div>
                 </div>
@@ -484,11 +484,6 @@
                                     grid: { color: '#F1F5F9' } 
                                 },
                                 y: { 
-                                    afterFit: function(axis) {
-                                        if (window.innerWidth < 768) {
-                                            axis.width = 110;
-                                        }
-                                    },
                                     ticks: { 
                                         color: '#1e293b', 
                                         crossAlign: window.innerWidth < 768 ? 'far' : 'near',
@@ -496,17 +491,6 @@
                                         font: function(context) {
                                             const width = context.chart.width;
                                             return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
-                                        },
-                                        callback: function(value) {
-                                            const label = this.getLabelForValue(value);
-                                            if (window.innerWidth < 768 && label && label.length > 10) {
-                                                const chunks = [];
-                                                for (let i = 0; i < label.length; i += 12) {
-                                                    chunks.push(label.substring(i, i + 12));
-                                                }
-                                                return chunks;
-                                            }
-                                            return label;
                                         }
                                     }, 
                                     grid: { display: false } 
@@ -655,11 +639,6 @@
                                 grid: { color: '#F1F5F9' }
                             },
                             y: {
-                                afterFit: function(axis) {
-                                    if (window.innerWidth < 768) {
-                                        axis.width = 110;
-                                    }
-                                },
                                 ticks: { 
                                     color: '#1e293b', 
                                     crossAlign: window.innerWidth < 768 ? 'far' : 'near',
@@ -667,17 +646,6 @@
                                     font: function(context) {
                                         const width = context.chart.width;
                                         return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
-                                    },
-                                    callback: function(value) {
-                                        const label = this.getLabelForValue(value);
-                                        if (window.innerWidth < 768 && label && label.length > 10) {
-                                            const chunks = [];
-                                            for (let i = 0; i < label.length; i += 12) {
-                                                chunks.push(label.substring(i, i + 12));
-                                            }
-                                            return chunks;
-                                        }
-                                        return label;
                                     }
                                 },
                                 grid: { display: false }
