@@ -461,7 +461,7 @@
                             maintainAspectRatio: false,
                             layout: {
                                 padding: {
-                                    left: window.innerWidth < 768 ? 120 : 5
+                                    left: window.innerWidth < 768 ? 10 : 5
                                 }
                             },
                             plugins: { 
@@ -484,10 +484,15 @@
                                     grid: { color: '#F1F5F9' } 
                                 },
                                 y: { 
+                                    afterFit: function(axis) {
+                                        if (window.innerWidth < 768) {
+                                            axis.width = 110;
+                                        }
+                                    },
                                     ticks: { 
                                         color: '#1e293b', 
-                                        crossAlign: window.innerWidth < 768 ? 'start' : 'end',
-                                        textAlign: 'left',
+                                        crossAlign: window.innerWidth < 768 ? 'far' : 'near',
+                                        textAlign: window.innerWidth < 768 ? 'left' : 'right',
                                         font: function(context) {
                                             const width = context.chart.width;
                                             return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
@@ -627,7 +632,7 @@
                         maintainAspectRatio: false, 
                         layout: {
                             padding: {
-                                left: window.innerWidth < 768 ? 120 : 5
+                                left: window.innerWidth < 768 ? 10 : 5
                             }
                         },
                         plugins: { 
@@ -650,10 +655,15 @@
                                 grid: { color: '#F1F5F9' }
                             },
                             y: {
+                                afterFit: function(axis) {
+                                    if (window.innerWidth < 768) {
+                                        axis.width = 110;
+                                    }
+                                },
                                 ticks: { 
                                     color: '#1e293b', 
-                                    crossAlign: window.innerWidth < 768 ? 'start' : 'end',
-                                    textAlign: 'left',
+                                    crossAlign: window.innerWidth < 768 ? 'far' : 'near',
+                                    textAlign: window.innerWidth < 768 ? 'left' : 'right',
                                     font: function(context) {
                                         const width = context.chart.width;
                                         return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
