@@ -461,7 +461,7 @@
                             maintainAspectRatio: false,
                             layout: {
                                 padding: {
-                                    left: window.innerWidth < 768 ? 15 : 5
+                                    left: window.innerWidth < 768 ? 120 : 5
                                 }
                             },
                             plugins: { 
@@ -486,6 +486,8 @@
                                 y: { 
                                     ticks: { 
                                         color: '#1e293b', 
+                                        crossAlign: window.innerWidth < 768 ? 'start' : 'end',
+                                        textAlign: 'left',
                                         font: function(context) {
                                             const width = context.chart.width;
                                             return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
@@ -625,7 +627,7 @@
                         maintainAspectRatio: false, 
                         layout: {
                             padding: {
-                                left: window.innerWidth < 768 ? 15 : 5
+                                left: window.innerWidth < 768 ? 120 : 5
                             }
                         },
                         plugins: { 
@@ -650,6 +652,8 @@
                             y: {
                                 ticks: { 
                                     color: '#1e293b', 
+                                    crossAlign: window.innerWidth < 768 ? 'start' : 'end',
+                                    textAlign: 'left',
                                     font: function(context) {
                                         const width = context.chart.width;
                                         return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
