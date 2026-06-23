@@ -74,19 +74,19 @@
                     <div class="exec-card-value" style="color: #16A34A;"><span id="stat-cleanliness">93</span><span style="font-size: 1rem; color: #94A3B8;">%</span></div>
                 </div>
                 <div class="exec-card">
-                    <div class="exec-card-title">ตรวจพบยาอันตราย</div>
-                    <div class="exec-card-value" style="color: #DC2626;"><span id="stat-med-danger">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span></div>
+                    <div class="exec-card-title">ตรวจพบเครื่องสำอางห้ามจำหน่ายตามประกาศ</div>
+                    <div class="exec-card-value" style="color: #DC2626;"><span id="stat-prohibited-shops">0</span> <span style="font-size: 1rem; color: #94A3B8;">ร้าน</span></div>
                 </div>
                 <div class="exec-card">
-                    <div class="exec-card-title">ตรวจพบเครื่องสำอางห้ามขาย</div>
-                    <div class="exec-card-value" style="color: #EA580C;"><span id="stat-cos-danger">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span></div>
+                    <div class="exec-card-title">ฉลากที่บกพร่อง</div>
+                    <div class="exec-card-value" style="color: #EA580C;"><span id="stat-defective-products">0</span> <span style="font-size: 1rem; color: #94A3B8;">ผลิตภัณฑ์</span></div>
                 </div>
             </div>
 
             <div class="exec-card exec-card-full" style="margin-bottom: 80px;">
                 <div class="exec-card-title" style="text-align: center; font-size: 1.2rem; color: #0F172A; font-weight: 600;">สัดส่วนหัวข้อข้อบกพร่องบนฉลากเครื่องสำอาง (%)</div>
                 <div class="chart-wrapper">
-                    <canvas id="problemsDonutChart"></canvas>
+                    <canvas id="problemsBarChart"></canvas>
                 </div>
             </div>
 
@@ -497,8 +497,8 @@
 
                 animateDynamicValue('stat-shops', totalShops, false);
                 animateDynamicValue('stat-cleanliness', percentLabel, true);
-                animateDynamicValue('stat-med-danger', totalMedDanger, false);
-                animateDynamicValue('stat-cos-danger', totalCosDanger, false);
+                animateDynamicValue('stat-prohibited-shops', totalMedDanger, false);
+                animateDynamicValue('stat-defective-products', totalCosDanger, false);
 
                 if (data.defectLabels && data.defectData) {
                     defectLabels = data.defectLabels;
@@ -512,12 +512,12 @@
                 // ข้อมูลจำลองเมื่อเกิดปัญหา CORS
                 animateDynamicValue('stat-shops', 9, false);
                 animateDynamicValue('stat-cleanliness', 93.5, true);
-                animateDynamicValue('stat-med-danger', 2, false);
-                animateDynamicValue('stat-cos-danger', 1, false);
+                animateDynamicValue('stat-prohibited-shops', 2, false);
+                animateDynamicValue('stat-defective-products', 1, false);
             }
 
-            // วาดกราฟโดนัท "ปัญหาที่พบจากการตรวจฉลาก"
-            const ctxProb = document.getElementById('problemsDonutChart');
+            // วาดกราฟแท่งแนวนอน "ปัญหาที่พบจากการตรวจฉลาก"
+            const ctxProb = document.getElementById('problemsBarChart');
             if (ctxProb) {
                 const existingChart = Chart.getChart(ctxProb);
                 if (existingChart) existingChart.destroy();
@@ -533,7 +533,7 @@
                 }
 
                 new Chart(ctxProb, {
-                    type: 'doughnut',
+                    type: 'bar',
                     data: {
                         labels: defectLabels,
                         datasets: [{
@@ -542,20 +542,38 @@
                                 '#0284C7', '#16A34A', '#EA580C', '#EAB308', '#8B5CF6', 
                                 '#94A3B8', '#EC4899', '#14B8A6', '#F59E0B', '#6366F1'
                             ],
-                            borderWidth: 0
+                            borderRadius: 6,
+                            barThickness: 20
                         }]
                     },
                     options: { 
-                        responsive: true, maintainAspectRatio: false, 
+                        indexAxis: 'y', // ทำให้เป็นกราฟแท่งแนวนอน
+                        responsive: true, 
+                        maintainAspectRatio: false, 
                         plugins: { 
-                            legend: { labels: { color: '#475569', font: { family: 'Prompt' } }, position: 'right' }, 
+                            legend: { 
+                                display: false // ซ่อน legend เพื่อความสวยงามและเพิ่มพื้นที่แสดงผล
+                            }, 
                             datalabels: { 
                                 color: '#fff', 
-                                font: { family: 'Prompt', weight: 'bold', size: 12 }, 
+                                font: { family: 'Prompt', weight: 'bold', size: 11 }, 
+                                anchor: 'end',
+                                align: 'start',
                                 formatter: (value) => value > 0 ? value + '%' : '' 
                             } 
-                        }, 
-                        cutout: '50%' 
+                        },
+                        scales: {
+                            x: {
+                                max: 100,
+                                beginAtZero: true,
+                                ticks: { color: '#64748B', font: { family: 'Prompt' } },
+                                grid: { color: '#F1F5F9' }
+                            },
+                            y: {
+                                ticks: { color: '#0F172A', font: { family: 'Prompt', weight: '500' } },
+                                grid: { display: false }
+                            }
+                        }
                     }
                 });
             }
