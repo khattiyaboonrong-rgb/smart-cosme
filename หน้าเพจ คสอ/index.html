@@ -459,9 +459,14 @@
                             indexAxis: 'y', // กราฟแท่งแนวนอน
                             responsive: true, 
                             maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    left: window.innerWidth < 768 ? 15 : 5
+                                }
+                            },
                             plugins: { 
                                 legend: { 
-                                    display: false // ซ่อน legend เนื่องจากชื่อหมวดหมู่แสดงที่แกน Y ชัดเจนแล้ว
+                                    display: false // ซ่อน legend
                                 },
                                 datalabels: { 
                                     color: '#fff', 
@@ -479,7 +484,24 @@
                                     grid: { color: '#F1F5F9' } 
                                 },
                                 y: { 
-                                    ticks: { color: '#0F172A', font: { family: 'Prompt', weight: '500' } }, 
+                                    ticks: { 
+                                        color: '#1e293b', 
+                                        font: function(context) {
+                                            const width = context.chart.width;
+                                            return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
+                                        },
+                                        callback: function(value) {
+                                            const label = this.getLabelForValue(value);
+                                            if (window.innerWidth < 768 && label && label.length > 10) {
+                                                const chunks = [];
+                                                for (let i = 0; i < label.length; i += 12) {
+                                                    chunks.push(label.substring(i, i + 12));
+                                                }
+                                                return chunks;
+                                            }
+                                            return label;
+                                        }
+                                    }, 
                                     grid: { display: false } 
                                 }
                             }
@@ -601,6 +623,11 @@
                         indexAxis: 'y', // ทำให้เป็นกราฟแท่งแนวนอน
                         responsive: true, 
                         maintainAspectRatio: false, 
+                        layout: {
+                            padding: {
+                                left: window.innerWidth < 768 ? 15 : 5
+                            }
+                        },
                         plugins: { 
                             legend: { 
                                 display: false // ซ่อน legend เพื่อความสวยงามและเพิ่มพื้นที่แสดงผล
@@ -621,7 +648,24 @@
                                 grid: { color: '#F1F5F9' }
                             },
                             y: {
-                                ticks: { color: '#0F172A', font: { family: 'Prompt', weight: '500' } },
+                                ticks: { 
+                                    color: '#1e293b', 
+                                    font: function(context) {
+                                        const width = context.chart.width;
+                                        return { family: 'Prompt', size: width < 400 ? 9.5 : 12, weight: '500' };
+                                    },
+                                    callback: function(value) {
+                                        const label = this.getLabelForValue(value);
+                                        if (window.innerWidth < 768 && label && label.length > 10) {
+                                            const chunks = [];
+                                            for (let i = 0; i < label.length; i += 12) {
+                                                chunks.push(label.substring(i, i + 12));
+                                            }
+                                            return chunks;
+                                        }
+                                        return label;
+                                    }
+                                },
                                 grid: { display: false }
                             }
                         }
