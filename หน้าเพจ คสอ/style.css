@@ -929,8 +929,15 @@ body {
     .exec-kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
 
+.exec-kpi-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
 @media (max-width: 768px) {
-    .exec-kpi-grid-4, .exec-kpi-grid-2, .exec-chart-grid-2 {
+    .exec-kpi-grid-4, .exec-kpi-grid-3, .exec-kpi-grid-2, .exec-chart-grid-2 {
         grid-template-columns: 1fr;
     }
 }

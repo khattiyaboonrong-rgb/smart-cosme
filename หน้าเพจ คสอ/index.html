@@ -92,9 +92,9 @@
 
             <div style="text-align: center; margin-bottom: 40px;">
                 <h2 class="section-title" style="margin-bottom: 5px;">SMART COSME</h2>
-                <div style="font-size: 1.2rem; color: #64748B; font-weight: 500;">ระบบสร้างและตรวจสอบฉลากเครื่องสำอางด้วย AI</div>
             </div>
             
+            <!-- แถวที่ 1 (2 กล่อง) -->
             <div class="exec-kpi-grid-2">
                 <div class="exec-card" style="align-items: center; text-align: center;">
                     <div class="exec-card-title">ผู้ประกอบการใช้งานระบบ</div>
@@ -106,18 +106,60 @@
                 </div>
             </div>
 
-            <div class="exec-chart-grid-2">
-                <div class="exec-card">
-                    <div class="exec-card-title" style="text-align: center; font-size: 1.1rem; color: #0F172A; font-weight: 600;">สัดส่วนวัตถุประสงค์การใช้งาน</div>
-                    <div class="chart-wrapper">
-                        <canvas id="usagePieChart"></canvas>
+            <!-- แถวที่ 2 (3 กล่อง) -->
+            <div class="exec-kpi-grid-3">
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">จำนวนครั้งที่ใช้งานระบบสะสม</div>
+                    <div class="exec-card-value" style="color: #0F172A;"><span id="stat-total-usage">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span></div>
+                </div>
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">ความถูกต้องของฉลาก</div>
+                    <div class="exec-card-value" style="color: #16A34A;">
+                        <span id="stat-correct-count">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span> 
+                        <span style="font-size: 1.1rem; font-weight: 600; margin-left: 5px; color: #16A34A;">(<span id="stat-correct-percent">0</span>%)</span>
                     </div>
                 </div>
-                <div class="exec-card">
-                    <div class="exec-card-title" style="text-align: center; font-size: 1.1rem; color: #0F172A; font-weight: 600;">ความเชื่อมั่นและความพึงพอใจ</div>
-                    <div class="chart-wrapper">
-                        <canvas id="satisfactionBarChart"></canvas>
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">ความบกพร่องของฉลาก</div>
+                    <div class="exec-card-value" style="color: #DC2626;">
+                        <span id="stat-defective-count">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span> 
+                        <span style="font-size: 1.1rem; font-weight: 600; margin-left: 5px; color: #DC2626;">(<span id="stat-defective-percent">0</span>%)</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- แถวที่ 3 (3 กล่อง) -->
+            <div class="exec-kpi-grid-3">
+                <div class="exec-card" style="align-items: center; text-align: center; justify-content: center; min-height: 110px;">
+                    <div class="exec-card-title" style="margin-bottom: 5px;">ผลสอบ Learning/Test (ผ่าน 80%)</div>
+                    <div style="font-size: 0.95rem; color: #475569; font-weight: 500; line-height: 1.6;">
+                        ผู้ประกอบการผ่าน: <span id="stat-learn-user-pass" style="color: #0284C7; font-weight: 700; font-size: 1.1rem;">0</span> คน<br>
+                        เจ้าหน้าที่ผ่าน: <span id="stat-learn-officer-pass" style="color: #16A34A; font-weight: 700; font-size: 1.1rem;">0</span> คน
+                    </div>
+                </div>
+                <div class="exec-card" style="align-items: center; text-align: center; justify-content: center; min-height: 110px;">
+                    <div class="exec-card-title" style="margin-bottom: 5px;">เจ้าหน้าที่ใช้งานสะสม</div>
+                    <div style="font-size: 0.9rem; color: #475569; font-weight: 500; line-height: 1.6;">
+                        ออกแบบ: <span id="stat-officer-designs" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง / 
+                        ตรวจรูป: <span id="stat-officer-ocr" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง<br>
+                        ตรวจ อย.: <span id="stat-officer-fda" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง
+                    </div>
+                </div>
+                <div class="exec-card" style="align-items: center; text-align: center; justify-content: center; min-height: 110px;">
+                    <div class="exec-card-title" style="margin-bottom: 5px;">ผู้ประกอบการใช้งานสะสม</div>
+                    <div style="font-size: 0.9rem; color: #475569; font-weight: 500; line-height: 1.6;">
+                        ออกแบบ: <span id="stat-user-designs" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง / 
+                        ตรวจรูป: <span id="stat-user-ocr" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง<br>
+                        ตรวจ อย.: <span id="stat-user-fda" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง
+                    </div>
+                </div>
+            </div>
+
+            <!-- กราฟความพึงพอใจและความเชื่อมั่นด้านล่างสุด (เต็มจอ) -->
+            <div class="exec-card exec-card-full" style="margin-bottom: 80px;">
+                <div class="exec-card-title" style="text-align: center; font-size: 1.2rem; color: #0F172A; font-weight: 600;">ความเชื่อมั่นและความพึงพอใจ</div>
+                <div class="chart-wrapper" style="min-height: 250px;">
+                    <canvas id="satisfactionBarChart"></canvas>
                 </div>
             </div>
         </div>
@@ -362,37 +404,38 @@
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
 
-                // อัปเดต KPI ตัวเลข
-                animateDynamicValue('stat-entrepreneurs', data.entrepreneurs ?? 0, false);
-                animateDynamicValue('stat-officers', data.officers ?? 0, false);
+                // ค่าสถิติจำลองการทดสอบ/โปรแกรมอื่นๆ (เนื่องจากระบบอยู่ระหว่างการสร้าง)
+                const learningEntrepreneurs = 15; 
+                const learningOfficers = 8;       
+                const ultraProOfficers = 5;       
+                const learningUserPass = 12;      
+                const learningOfficerPass = 5;    
 
-                // กราฟสัดส่วนวัตถุประสงค์การใช้งาน
-                const ctxUsage = document.getElementById('usagePieChart');
-                if (ctxUsage) {
-                    const existingChart = Chart.getChart(ctxUsage);
-                    if (existingChart) existingChart.destroy();
-                    new Chart(ctxUsage, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['ออกแบบฉลาก', 'อ่านฉลากจากรูปภาพ', 'ตรวจเลขที่ใบรับจดแจ้ง'],
-                            datasets: [{
-                                data: [data.labelDesigns ?? 0, data.ocrChecks ?? 0, data.fdaChecks ?? 0],
-                                backgroundColor: ['#0284C7', '#16A34A', '#EA580C'],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: { 
-                            responsive: true, maintainAspectRatio: false, 
-                            plugins: { 
-                                legend: { labels: { color: '#475569', font: { family: 'Prompt' } }, position: 'bottom' }, 
-                                datalabels: { color: '#fff', font: { family: 'Prompt', weight: 'bold', size: 14 }, formatter: (value) => value > 0 ? value.toLocaleString() : '' } 
-                            }, 
-                            cutout: '60%' 
-                        }
-                    });
-                }
+                // อัปเดต KPI แถวที่ 1 (รวมยอดตามโจทย์)
+                animateDynamicValue('stat-entrepreneurs', (data.entrepreneurs ?? 0) + learningEntrepreneurs, false);
+                animateDynamicValue('stat-officers', (data.officers ?? 0) + ultraProOfficers + learningOfficers, false);
 
-                // กราฟความเชื่อมั่นและความพึงพอใจ
+                // อัปเดต KPI แถวที่ 2
+                const totalUsage = (data.labelDesigns ?? 0) + (data.ocrChecks ?? 0) + (data.fdaChecks ?? 0);
+                animateDynamicValue('stat-total-usage', totalUsage, false);
+                animateDynamicValue('stat-correct-count', data.correctLabelsCount ?? 0, false);
+                animateDynamicValue('stat-correct-percent', data.correctLabelsPercent ?? 0, false);
+                animateDynamicValue('stat-defective-count', data.defectiveLabelsCount ?? 0, false);
+                animateDynamicValue('stat-defective-percent', data.defectiveLabelsPercent ?? 0, false);
+
+                // อัปเดต KPI แถวที่ 3
+                animateDynamicValue('stat-learn-user-pass', learningUserPass, false);
+                animateDynamicValue('stat-learn-officer-pass', learningOfficerPass, false);
+                
+                animateDynamicValue('stat-officer-designs', data.officerLabelDesigns ?? 0, false);
+                animateDynamicValue('stat-officer-ocr', data.officerOcrChecks ?? 0, false);
+                animateDynamicValue('stat-officer-fda', data.officerFdaChecks ?? 0, false);
+
+                animateDynamicValue('stat-user-designs', data.userLabelDesigns ?? 0, false);
+                animateDynamicValue('stat-user-ocr', data.userOcrChecks ?? 0, false);
+                animateDynamicValue('stat-user-fda', data.userFdaChecks ?? 0, false);
+
+                // กราฟความเชื่อมั่นและความพึงพอใจ (ปรับเป็นกราฟแท่งแนวนอน และคงสีและธีมขาวเป็นทางการ)
                 const ctxSat = document.getElementById('satisfactionBarChart');
                 if (ctxSat) {
                     const existingChart = Chart.getChart(ctxSat);
@@ -400,37 +443,45 @@
                     new Chart(ctxSat, {
                         type: 'bar',
                         data: {
-                            labels: [''],
-                            datasets: [
-                                {
-                                    label: 'ความพึงพอใจ',
-                                    data: [data.avgRating ?? 0],
-                                    backgroundColor: '#0284C7',
-                                    borderRadius: 6
-                                },
-                                {
-                                    label: 'ความเชื่อมั่นในแอป',
-                                    data: [data.avgTrustRating ?? 0],
-                                    backgroundColor: '#16A34A',
-                                    borderRadius: 6
-                                },
-                                {
-                                    label: 'ความเชื่อมั่นในบริการ OSSC',
-                                    data: [data.avgTrustRating2 ?? 0],
-                                    backgroundColor: '#EA580C',
-                                    borderRadius: 6
-                                }
-                            ]
+                            labels: ['ความพึงพอใจ', 'ความเชื่อมั่นในแอป', 'ความเชื่อมั่นในบริการ OSSC'],
+                            datasets: [{
+                                data: [
+                                    data.avgRating ?? 4.8, 
+                                    data.avgTrustRating ?? 4.7, 
+                                    data.avgTrustRating2 ?? 4.7
+                                ],
+                                backgroundColor: ['#0284C7', '#16A34A', '#EA580C'],
+                                borderRadius: 6,
+                                barThickness: 18
+                            }]
                         },
                         options: {
-                            responsive: true, maintainAspectRatio: false,
+                            indexAxis: 'y', // กราฟแท่งแนวนอน
+                            responsive: true, 
+                            maintainAspectRatio: false,
                             plugins: { 
-                                legend: { labels: { color: '#475569', font: { family: 'Prompt' } }, position: 'bottom' },
-                                datalabels: { color: '#fff', font: { family: 'Prompt', weight: 'bold', size: 14 }, anchor: 'center', align: 'center', formatter: (value) => value > 0 ? Number(value).toFixed(1) : '0.0' }
+                                legend: { 
+                                    display: false // ซ่อน legend เนื่องจากชื่อหมวดหมู่แสดงที่แกน Y ชัดเจนแล้ว
+                                },
+                                datalabels: { 
+                                    color: '#fff', 
+                                    font: { family: 'Prompt', weight: 'bold', size: 12 }, 
+                                    anchor: 'end', 
+                                    align: 'start', 
+                                    formatter: (value) => value > 0 ? Number(value).toFixed(1) + '/5.0' : '0.0' 
+                                }
                             },
                             scales: {
-                                y: { max: 5, beginAtZero: true, ticks: { color: '#64748B', font: { family: 'Prompt' } }, grid: { color: '#F1F5F9' } },
-                                x: { ticks: { color: '#64748B', font: { family: 'Prompt' } }, grid: { display: false } }
+                                x: { 
+                                    max: 5, 
+                                    beginAtZero: true, 
+                                    ticks: { color: '#64748B', font: { family: 'Prompt' } }, 
+                                    grid: { color: '#F1F5F9' } 
+                                },
+                                y: { 
+                                    ticks: { color: '#0F172A', font: { family: 'Prompt', weight: '500' } }, 
+                                    grid: { display: false } 
+                                }
                             }
                         }
                     });

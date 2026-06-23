@@ -265,14 +265,38 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
 // GET /api/public/stats — สำหรับดึงไปแสดงหน้า Dashboard สาธารณะ (ไม่ต้องใช้ Admin)
 app.get('/api/public/stats', async (req, res) => {
   try {
-    const [entrepreneurs, officers, labelDesigns, ocrChecks, fdaChecks, avgStats] = await Promise.all([
-      prisma.user.count({ where: { role: 'user', deletedAt: null } }),
-      prisma.user.count({ where: { role: { in: ['admin', 'officer'] }, deletedAt: null } }),
-      prisma.label.count(),
-      prisma.activity.count({ where: { action: 'ocr_check' } }),
-      prisma.activity.count({ where: { action: 'fda_check' } }),
-      prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true, trustRating2: true } }),
-    ]);
+    // ดึงไอดีผู้ใช้แยกตามสิทธิ์การใช้งาน
+    const officersList = await prisma.user.findMany({
+      where: { role: { in: ['admin', 'officer'] }, deletedAt: null },
+      select: { id: true }
+    });
+    const officerIds = officersList.map(o => o.id);
+
+    const usersList = await prisma.user.findMany({
+      where: { role: 'user', deletedAt: null },
+      select: { id: true }
+    });
+    const userIds = usersList.map(u => u.id);
+
+    const entrepreneurs = await prisma.user.count({ where: { role: 'user', deletedAt: null } });
+    const officers = await prisma.user.count({ where: { role: { in: ['admin', 'officer'] }, deletedAt: null } });
+    const labelDesigns = await prisma.label.count();
+    const ocrChecks = await prisma.activity.count({ where: { action: 'ocr_check' } });
+    const fdaChecks = await prisma.activity.count({ where: { action: 'fda_check' } });
+    const avgStats = await prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true, trustRating2: true } });
+    const correctLabelsCount = await prisma.label.count({ where: { score: { gte: 80 } } });
+    const defectiveLabelsCount = await prisma.label.count({ where: { OR: [{ score: { lt: 80 } }, { score: null }] } });
+    const officerLabelDesigns = await prisma.label.count({ where: { userId: { in: officerIds } } });
+    const userLabelDesigns = await prisma.label.count({ where: { userId: { in: userIds } } });
+    const officerOcrChecks = await prisma.activity.count({ where: { action: 'ocr_check', userId: { in: officerIds } } });
+    const userOcrChecks = await prisma.activity.count({ where: { action: 'ocr_check', userId: { in: userIds } } });
+    const officerFdaChecks = await prisma.activity.count({ where: { action: 'fda_check', userId: { in: officerIds } } });
+    const userFdaChecks = await prisma.activity.count({ where: { action: 'fda_check', userId: { in: userIds } } });
+
+    const totalLabels = correctLabelsCount + defectiveLabelsCount;
+    const correctLabelsPercent = totalLabels > 0 ? Math.round((correctLabelsCount / totalLabels) * 100) : 0;
+    const defectiveLabelsPercent = totalLabels > 0 ? Math.round((defectiveLabelsCount / totalLabels) * 100) : 0;
+
     res.json({ 
       entrepreneurs, 
       officers, 
@@ -280,11 +304,22 @@ app.get('/api/public/stats', async (req, res) => {
       labelChecks: ocrChecks + fdaChecks,
       ocrChecks,
       fdaChecks,
+      correctLabelsCount,
+      correctLabelsPercent,
+      defectiveLabelsCount,
+      defectiveLabelsPercent,
+      officerLabelDesigns,
+      userLabelDesigns,
+      officerOcrChecks,
+      userOcrChecks,
+      officerFdaChecks,
+      userFdaChecks,
       avgRating: avgStats._avg.rating || 4.8,
       avgTrustRating: avgStats._avg.trustRating || 4.7,
       avgTrustRating2: avgStats._avg.trustRating2 || 4.7
     });
   } catch (err) {
+    console.error('Public stats query error:', err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสาธารณะ' });
   }
 });
