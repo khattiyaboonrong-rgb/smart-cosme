@@ -225,7 +225,7 @@ app.post('/api/labels', requireAuth, async (req, res) => {
 // GET /api/admin/stats
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
-    const [total, totalAdmins, approved, rejected, todayUsers, totalFeedback, totalLabels, ocrChecks, fdaChecks, avgStats] = await Promise.all([
+    const [total, totalAdmins, approved, rejected, todayUsers, totalFeedback, totalLabels, ocrChecks, fdaChecks, avgStats, defectiveLabels] = await Promise.all([
       prisma.user.count({ where: { role: 'user', deletedAt: null } }),
       prisma.user.count({ where: { role: { in: ['admin', 'officer'] }, deletedAt: null } }),
       prisma.user.count({ where: { role: 'user', status: 'approved', deletedAt: null } }),
@@ -241,6 +241,14 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       prisma.activity.count({ where: { action: 'ocr_check' } }),
       prisma.activity.count({ where: { action: 'fda_check' } }),
       prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true, trustRating2: true } }),
+      prisma.label.count({
+        where: {
+          OR: [
+            { score: { lt: 100 } },
+            { hasBanned: true }
+          ]
+        }
+      })
     ]);
     res.json({ 
       total, 
@@ -255,7 +263,8 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       fdaChecks,
       avgRating: avgStats._avg.rating,
       avgTrustRating: avgStats._avg.trustRating,
-      avgTrustRating2: avgStats._avg.trustRating2
+      avgTrustRating2: avgStats._avg.trustRating2,
+      defectiveLabels
     });
   } catch (err) {
     res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
@@ -265,13 +274,21 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
 // GET /api/public/stats — สำหรับดึงไปแสดงหน้า Dashboard สาธารณะ (ไม่ต้องใช้ Admin)
 app.get('/api/public/stats', async (req, res) => {
   try {
-    const [entrepreneurs, officers, labelDesigns, ocrChecks, fdaChecks, avgStats] = await Promise.all([
+    const [entrepreneurs, officers, labelDesigns, ocrChecks, fdaChecks, avgStats, defectiveLabels] = await Promise.all([
       prisma.user.count({ where: { role: 'user', deletedAt: null } }),
       prisma.user.count({ where: { role: { in: ['admin', 'officer'] }, deletedAt: null } }),
       prisma.label.count(),
       prisma.activity.count({ where: { action: 'ocr_check' } }),
       prisma.activity.count({ where: { action: 'fda_check' } }),
       prisma.feedback.aggregate({ _avg: { rating: true, trustRating: true, trustRating2: true } }),
+      prisma.label.count({
+        where: {
+          OR: [
+            { score: { lt: 100 } },
+            { hasBanned: true }
+          ]
+        }
+      })
     ]);
     res.json({ 
       entrepreneurs, 
@@ -282,7 +299,8 @@ app.get('/api/public/stats', async (req, res) => {
       fdaChecks,
       avgRating: avgStats._avg.rating || 4.8,
       avgTrustRating: avgStats._avg.trustRating || 4.7,
-      avgTrustRating2: avgStats._avg.trustRating2 || 4.7
+      avgTrustRating2: avgStats._avg.trustRating2 || 4.7,
+      defectiveLabels
     });
   } catch (err) {
     res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสาธารณะ' });
