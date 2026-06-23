@@ -847,19 +847,19 @@ body {
    Executive Government Dashboard Styles
    ========================================== */
 .exec-dashboard {
-    background-color: #FAFAF8;
+    background-color: #f0f4f8;
     padding: 60px 0;
-    color: #1E293B;
+    color: #1e293b;
     font-family: 'Prompt', sans-serif;
 }
 
 .exec-dashboard .section-title {
-    color: #0F172A;
+    color: #1e293b;
     font-size: 1.8rem;
     font-weight: 700;
     margin-bottom: 30px;
     text-align: center;
-    border-bottom: 3px solid #0056b3;
+    border-bottom: 3px solid #059669;
     padding-bottom: 10px;
 }
 
@@ -886,24 +886,24 @@ body {
 
 .exec-card {
     background: #FFFFFF;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
     padding: 25px;
     display: flex;
     flex-direction: column;
-    border: 1px solid #F1F5F9;
+    border: 1px solid #e2e8f0;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .exec-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 40px rgba(31, 38, 135, 0.1);
 }
 
 .exec-card-title {
     font-size: 1rem;
     font-weight: 500;
-    color: #64748B;
+    color: #64748b;
     margin-bottom: 10px;
     line-height: 1.4;
 }
