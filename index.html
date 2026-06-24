@@ -909,6 +909,58 @@ body::after {
 }
 
 /* ================================================
+   SCANNER RETICLE & LASER OVERLAY
+   ================================================ */
+.scanner-reticle {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.45);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px;
+  z-index: 5;
+}
+
+.scanner-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  animation: scan-laser-move 3s linear infinite;
+  z-index: 6;
+}
+
+.scanner-label {
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 7;
+}
+
+@keyframes scan-laser-move {
+  0% { top: 0%; opacity: 0.3; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0.3; }
+}
+
+/* ================================================
    BANNED WORDS REFERENCE SECTION
    ================================================ */
 .law-section {
@@ -1325,7 +1377,13 @@ body::after {
         <div class="upload-text-sub">ระบบจะตรวจจับกลุ่มตัวเลขโดยอัตโนมัติ</div>
       </label>
 
-      <img id="fda-preview-img" alt="ตัวอย่างรูปภาพเลขที่ใบจดแจ้งที่อัปโหลด" style="display:none; max-width:100%; max-height:220px; margin: 16px auto; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      <div id="fda-preview-container" style="display:none; position:relative; max-width:100%; max-height:260px; margin:16px auto; overflow:hidden; border-radius:var(--radius-md); border:2px solid var(--border);">
+        <img id="fda-preview-img" alt="ตัวอย่างรูปภาพเลขที่ใบจดแจ้งที่อัปโหลด" style="display:block; width:100%; height:auto; max-height:260px; object-fit:contain; margin:0 auto;">
+        <div class="scanner-reticle">
+          <div class="scanner-laser"></div>
+          <div class="scanner-label">จัดวางเลขที่จดแจ้งให้อยู่ในกรอบแนวนอน</div>
+        </div>
+      </div>
 
       <div style="margin-top:16px; display:flex; gap:10px;">
         <button class="btn btn-primary" id="fdaCheckBtn" onclick="checkFdaImage()" disabled aria-label="สแกนและค้นหาข้อมูลเลขที่ใบจดแจ้ง">
@@ -2850,11 +2908,12 @@ function onFdaFileChange(event) {
   if (!file) return;
   fdaSelectedFile = file;
 
+  const container = document.getElementById("fda-preview-container");
   const img = document.getElementById("fda-preview-img");
   const reader = new FileReader();
   reader.onload = e => {
     img.src = e.target.result;
-    img.style.display = "block";
+    container.style.display = "block";
   };
   reader.readAsDataURL(file);
 
@@ -2939,17 +2998,32 @@ async function checkFdaImage() {
     btn.disabled = false;
     btn.innerHTML = '🔍 สแกนและตรวจสอบเลข อย.';
 
-    // Clean text and look for FDA formats
-    const cleanText = text.replace(/[^a-zA-Z0-9\-\s]/g, "");
-    const fdaPattern = /\b\d{2}-\d-\d{7,10}\b/;
-    const digitPattern = /\b\d{10,13}\b/;
+    // 1. Normalize common OCR mistakes (e.g. O->0, I/l->1, separators to dash) to increase accuracy
+    let normalizedText = text
+      .replace(/[Oo]/g, "0")
+      .replace(/[Il|iT]/g, "1")
+      .replace(/[Zz]/g, "2")
+      .replace(/[Ss]/g, "5")
+      .replace(/[Bb]/g, "8")
+      .replace(/[gGq]/g, "9")
+      .replace(/[\/\\._]/g, "-");
+
+    // Clean text allowing spaces and dashes
+    const cleanText = normalizedText.replace(/[^0-9\-\s]/g, " ");
+    const collapsedText = cleanText.replace(/-+/g, "-").replace(/\s+/g, "");
+    
+    // Use regex without word boundary \b to support Thai text containing no spaces
+    const fdaPattern = /\d{2}-\d-\d{7,10}/;
+    const digitPattern = /\d{10,13}/;
 
     let detectedNum = "";
-    const match1 = cleanText.match(fdaPattern);
+    const match1 = collapsedText.match(fdaPattern);
     if (match1) {
       detectedNum = match1[0];
     } else {
-      const match2 = text.replace(/[^0-9]/g, "").match(digitPattern);
+      // Fallback: strip everything except digits and look for 10-13 digits
+      const digitsOnly = normalizedText.replace(/[^0-9]/g, "");
+      const match2 = digitsOnly.match(digitPattern);
       if (match2) {
         const d = match2[0];
         detectedNum = `${d.substring(0,2)}-${d.substring(2,3)}-${d.substring(3)}`;
