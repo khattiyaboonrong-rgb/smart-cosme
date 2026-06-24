@@ -2204,7 +2204,7 @@ function saveFdaHistory(fdaNumber, productName, isActive) {
   records.unshift({
     isFda: true,
     fdaNumber: fdaNumber,
-    name: "ตรวจเลข อย. " + fdaNumber,
+    name: "ตรวจเลขที่ใบจดแจ้ง " + fdaNumber,
     score: isActive ? 100 : 0,
     date: new Date().toLocaleString("th-TH"),
     type: productName || "(ไม่พบข้อมูลผลิตภัณฑ์)",
@@ -2228,7 +2228,7 @@ function renderHistory() {
       const statusText = r.score === 100 ? "พบข้อมูล (อนุมัติ)" : "ไม่พบข้อมูล/ยกเลิก";
       return `<div class="history-item" style="border-left: 4px solid ${r.score === 100 ? '#22c55e' : '#ef4444'};">
         <div class="history-item-header">
-          <span class="history-item-name" style="color:#2563eb; font-weight:700;">🪪 เลขจดแจ้ง: ${esc(r.fdaNumber || r.name)}</span>
+          <span class="history-item-name" style="color:#2563eb; font-weight:700;">🪪 เลขที่ใบจดแจ้ง: ${esc(r.fdaNumber || r.name)}</span>
           <span class="history-score ${cls}" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">${statusText}</span>
         </div>
         <div class="history-item-meta">${esc(r.type)} · ${r.date}</div>
