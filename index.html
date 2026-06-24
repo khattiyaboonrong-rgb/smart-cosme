@@ -2197,19 +2197,47 @@ async function saveHistory(result) {
   }
 }
 
+function saveFdaHistory(fdaNumber, productName, isActive) {
+  const userId = window.currentUser?.id || 'guest';
+  const historyKey = "cosme_history_" + userId;
+  const records = JSON.parse(localStorage.getItem(historyKey) || "[]");
+  records.unshift({
+    isFda: true,
+    fdaNumber: fdaNumber,
+    name: "ตรวจเลข อย. " + fdaNumber,
+    score: isActive ? 100 : 0,
+    date: new Date().toLocaleString("th-TH"),
+    type: productName || "(ไม่พบข้อมูลผลิตภัณฑ์)",
+    recs: isActive ? 0 : 1
+  });
+  if (records.length > 10) records.pop();
+  localStorage.setItem(historyKey, JSON.stringify(records));
+}
+
 function renderHistory() {
   const userId = window.currentUser?.id || 'guest';
   const records = JSON.parse(localStorage.getItem("cosme_history_" + userId) || "[]");
   const list = document.getElementById("history-list");
   if (records.length === 0) {
-    list.innerHTML = `<div class="history-empty">📭 ยังไม่มีประวัติการตรวจสอบ<br>ไปที่ Tab "ออกแบบฉลาก" แล้วกด "สร้างฉลาก"</div>`;
+    list.innerHTML = `<div class="history-empty">📭 ยังไม่มีประวัติการตรวจสอบ<br>ไปที่ Tab "ออกแบบฉลาก" หรือ "ตรวจเลขที่ใบจดแจ้ง"</div>`;
     return;
   }
   list.innerHTML = records.map((r,i) => {
+    if (r.isFda) {
+      const cls = r.score === 100 ? "hs-good" : "hs-bad";
+      const statusText = r.score === 100 ? "พบข้อมูล (อนุมัติ)" : "ไม่พบข้อมูล/ยกเลิก";
+      return `<div class="history-item" style="border-left: 4px solid ${r.score === 100 ? '#22c55e' : '#ef4444'};">
+        <div class="history-item-header">
+          <span class="history-item-name" style="color:#2563eb; font-weight:700;">🪪 เลขจดแจ้ง: ${esc(r.fdaNumber || r.name)}</span>
+          <span class="history-score ${cls}" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">${statusText}</span>
+        </div>
+        <div class="history-item-meta">${esc(r.type)} · ${r.date}</div>
+      </div>`;
+    }
     const cls = r.score >= 80 ? "hs-good" : r.score >= 50 ? "hs-warn" : "hs-bad";
     return `<div class="history-item">
       <div class="history-item-header">
-        <span class="history-item-name">${esc(r.name)}</span>
+        <span class="history-item-name">📝 ${esc(r.name)}</span>
         <span class="history-score ${cls}">${r.score}%</span>
       </div>
       <div class="history-item-meta">${r.type ? r.type+' · ' : ''}${r.date} · ข้อแนะนำ ${r.recs} รายการ</div>
@@ -3025,6 +3053,7 @@ async function renderFdaCheckResult(num) {
     const result = await response.json();
     if (!result || !result.success) {
       setFdaStep(3, "done");
+      saveFdaHistory(formattedNum, "ไม่พบข้อมูลในฐานข้อมูลสืบค้นของ อย.", false);
       resultSec.innerHTML = `
         <div class="alert alert-err" style="display:block; text-align:left; font-family:'Prompt', sans-serif;">
           <strong>❌ ไม่พบข้อมูลในฐานข้อมูลสืบค้นของ อย.</strong><br>
@@ -3075,6 +3104,8 @@ async function renderFdaCheckResult(num) {
     const isActive = activeKeywords.some(keyword => statusText.toLowerCase().includes(keyword));
     const displayStatusText = statusText || "ไม่ระบุสถานะ";
     const pillIcon = isActive ? "✅" : "🚫";
+
+    saveFdaHistory(formattedNum, data.productha || "(ไม่ระบุชื่อ)", isActive);
 
     resultSec.innerHTML = `
       ${nameMatchAlert}
