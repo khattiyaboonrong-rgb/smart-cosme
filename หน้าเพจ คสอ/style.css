@@ -156,7 +156,7 @@ body {
 }
 
 .glowing-text {
-    font-size: 4.5rem;
+    font-size: 3rem;
     font-weight: 800;
     color: #ff2a7a;
     text-shadow: 0 0 10px rgba(255, 42, 122, 0.3), 0 0 20px rgba(255, 42, 122, 0.2);
@@ -697,6 +697,10 @@ body {
     .hero-grid-tech {
         grid-template-columns: 1fr;
         text-align: center;
+    }
+
+    .glowing-text {
+        font-size: 2.2rem;
     }
     
     .tech-subtitle {
