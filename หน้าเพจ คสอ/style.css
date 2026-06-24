@@ -166,7 +166,7 @@ body {
 }
 
 .tech-subtitle {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: #475569;
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(10px);
@@ -175,7 +175,7 @@ body {
     padding: 15px 20px;
     margin-bottom: 40px;
     font-weight: 500;
-    max-width: 90%;
+    max-width: 100%;
     border-radius: 0 10px 10px 0;
 }
 
@@ -704,6 +704,8 @@ body {
         border-left: none;
         border-bottom: 4px solid #ff2a7a;
         border-radius: 10px;
+        font-size: 0.9rem;
+        max-width: 100%;
     }
 
     .hero-buttons {
