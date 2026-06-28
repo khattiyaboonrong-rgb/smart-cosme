@@ -2253,7 +2253,7 @@ function renderHistory() {
       </div>`;
     }
     const cls = r.score >= 80 ? "hs-good" : r.score >= 50 ? "hs-warn" : "hs-bad";
-    const hasRecs = r.recList && r.recList.length > 0;
+    const hasRecs = r.recs > 0;
     const clickAttr = hasRecs ? `onclick="toggleHistoryDetail(this)" style="cursor:pointer;"` : "";
     
     return `<div class="history-item" ${clickAttr}>
@@ -2269,7 +2269,10 @@ function renderHistory() {
       <div class="history-detail-panel" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:0.8rem; line-height: 1.6;">
         <strong style="color:var(--text-main); display:block; margin-bottom:4px;">📋 รายละเอียดข้อแนะนำ:</strong>
         <ol style="padding-left:18px; margin:0;">
-          ${r.recList.map(item => `<li style="margin-bottom:4px; color:var(--text-sub);">${esc(item)}</li>`).join("")}
+          ${r.recList && r.recList.length > 0 
+            ? r.recList.map(item => `<li style="margin-bottom:4px; color:var(--text-sub);">${esc(item)}</li>`).join("")
+            : `<li style="color:#b91c1c; list-style:none;">⚠️ ไม่พบข้อมูลคำแนะนำย้อนหลัง (เนื่องจากเป็นรายการประวัติเก่าที่ตรวจสอบก่อนการอัปเดตระบบ)</li>`
+          }
         </ol>
       </div>` : ''}
     </div>`;
