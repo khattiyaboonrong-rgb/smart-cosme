@@ -1326,6 +1326,14 @@ body::after {
 
       <img id="preview-img" alt="ตัวอย่างรูปภาพฉลากที่อัปโหลด">
 
+      <!-- Option to enter FDA number or auto-fill from OCR -->
+      <div style="margin-top:16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px;">
+        <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:8px; color: var(--text-main);">
+          เลขที่ใบรับจดแจ้ง (ระบุเองเพื่อตรวจสอบคู่กัน หรือปล่อยว่างระบบจะสแกนหาอัตโนมัติ):
+        </label>
+        <input type="text" id="ocrFdaManualInput" class="form-input" style="width:100%; box-sizing:border-box; margin-bottom:0;" placeholder="เช่น 10-1-6200000 หรือ 1016200000">
+      </div>
+
       <div style="margin-top:16px;">
         <button class="btn btn-success" id="checkBtn" onclick="checkImage()" disabled aria-label="ตรวจสอบฉลากด้วย AI">
           🔍 ตรวจสอบฉลากด้วย AI
@@ -2443,6 +2451,7 @@ function onFileChange(event) {
   reader.readAsDataURL(file);
 
   document.getElementById("checkBtn").disabled = false;
+  document.getElementById("ocrFdaManualInput").value = "";
   document.getElementById("imageResult").innerHTML = "";
   document.getElementById("ocrTextSection").style.display = "none";
   ocrText = "";
@@ -2487,7 +2496,7 @@ async function checkImage() {
         corePath:   'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd-lstm.wasm.js',
         logger: m => {
           if (m.status === 'recognizing text') {
-            setProgress(Math.round(10 + m.progress * 55), `OCR กำลังอ่านข้อความ: ${Math.round(m.progress*100)}%`);
+            setProgress(Math.round(10 + m.progress * 45), `OCR กำลังอ่านข้อความ: ${Math.round(m.progress*100)}%`);
           } else if (m.status === 'loading language traineddata') {
             setProgress(15, 'กำลังโหลดข้อมูลภาษาไทย...');
           } else if (m.status === 'initializing api') {
@@ -2524,12 +2533,54 @@ async function checkImage() {
       return;
     }
 
-    // STEP 3: Smart Rule-Based AI Analysis
+    // STEP 3: Smart Rule-Based AI Analysis & FDA registration lookup
     setStep(3, "active");
-    setProgress(70, "Smart AI กำลังวิเคราะห์ตาม พ.ร.บ. เครื่องสำอาง...");
+    setProgress(60, "Smart AI กำลังสแกนหาเลขทะเบียน อย. ในข้อความ...");
 
-    await new Promise(r => setTimeout(r, 400)); // brief UI delay
-    const aiResult = analyzeOCRText(ocrText);
+    // Try to find FDA registration number in OCR if not manually entered
+    let fdaNum = document.getElementById("ocrFdaManualInput").value.trim();
+    if (!fdaNum) {
+      const match = ocrText.match(/\b\d{2,3}-\d-\d{6,}\b|\b\d{10,13}\b/);
+      if (match) {
+        fdaNum = match[0];
+        document.getElementById("ocrFdaManualInput").value = fdaNum;
+      }
+    }
+
+    let fdaDataResult = null;
+    let formattedNum = "";
+    if (fdaNum) {
+      formattedNum = fdaNum;
+      const digitsOnly = fdaNum.replace(/[^0-9]/g, "");
+      if (digitsOnly.length >= 10 && !fdaNum.includes("-")) {
+        formattedNum = `${digitsOnly.substring(0,2)}-${digitsOnly.substring(2,3)}-${digitsOnly.substring(3)}`;
+      }
+
+      setProgress(75, "กำลังสืบค้นข้อมูลทะเบียน อย. จากฐานข้อมูล Real-time...");
+      try {
+        const token = localStorage.getItem('cosme_token');
+        const authHeaders = token ? { 'Authorization': 'Bearer ' + token } : {};
+        const backendUrl = (window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + `/api/fda/check?number=${encodeURIComponent(formattedNum)}`;
+        const response = await fetch(backendUrl, { headers: authHeaders });
+        if (response.ok) {
+          const resJson = await response.json();
+          if (resJson && resJson.success) {
+            fdaDataResult = resJson;
+          } else {
+            fdaDataResult = { success: false, message: resJson.message || "ไม่พบข้อมูลในฐานข้อมูล อย." };
+          }
+        } else {
+          fdaDataResult = { success: false, message: "ไม่สามารถสืบค้นข้อมูลจากระบบ อย. ได้" };
+        }
+      } catch (e) {
+        console.error("OCR FDA query error:", e);
+        fdaDataResult = { success: false, message: "เกิดข้อผิดพลาดในการเชื่อมต่อระบบ อย." };
+      }
+    }
+
+    setProgress(90, "Smart AI กำลังประมวลผลข้อกำหนดกฎหมายฉลาก...");
+    await new Promise(r => setTimeout(r, 300));
+    const aiResult = analyzeOCRText(ocrText, fdaDataResult, formattedNum);
     setStep(3, "done");
     setProgress(100, "✅ วิเคราะห์เสร็จสมบูรณ์");
 
@@ -2545,7 +2596,7 @@ async function checkImage() {
         await fetch((window.location.protocol === 'file:' ? 'http://localhost:3001' : '') + '/api/activities/log', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeaders },
-          body: JSON.stringify({ action: 'ocr_check', detail: 'ตรวจฉลากจากรูปภาพ' })
+          body: JSON.stringify({ action: 'ocr_check', detail: 'ตรวจฉลากจากรูปภาพ' + (formattedNum ? ` ร่วมกับเลข อย. ${formattedNum}` : '') })
         });
       } catch (e) {
         console.warn("Failed to log activity:", e);
@@ -2565,7 +2616,7 @@ async function checkImage() {
 /* ============================================================
    ANALYSE OCR TEXT
    ============================================================ */
-function analyzeOCRText(t) {
+function analyzeOCRText(t, fdaResult = null, fdaNumber = "") {
   const items = [];
   let score = 0;
   const recs = [];
@@ -2618,17 +2669,26 @@ function analyzeOCRText(t) {
   if (!hasDate) recs.push("ต้องระบุวันที่ผลิตหรือวันหมดอายุ");
 
   // 7. เลขจดแจ้ง
-  const notifyKW  = /เลขที่ใบรับจดแจ้ง|เลขที่จดแจ้ง|เลขจดแจ้ง|ใบรับแจ้ง|หมายเลขจดแจ้ง/i.test(t);
-  const notifyNum = /\b\d{2,3}-\d-\d{6,}\b|\b\d{10,13}\b/.test(t);
-  const notifyPH  = /x{5,}|0{5,}/i.test(t);
-  add("7. เลขที่ใบรับจดแจ้ง",
-    notifyPH ? "warn" : (notifyKW && notifyNum) ? "pass" : (notifyKW || notifyNum) ? "warn" : "fail",
-    notifyPH ? "พบ placeholder แทนเลขที่ใบรับจดแจ้ง"
-      : (notifyKW && notifyNum) ? "พบคำว่าเลขที่ใบรับจดแจ้ง พร้อมตัวเลข"
-      : notifyKW ? "พบคำว่าเลขที่ใบรับจดแจ้ง แต่ไม่พบตัวเลข"
-      : notifyNum ? "พบรูปแบบตัวเลขคล้ายเลขจดแจ้ง"
-      : "ไม่พบเลขที่ใบรับจดแจ้ง");
-  if (!notifyKW && !notifyNum) recs.push("ต้องระบุเลขที่ใบรับจดแจ้ง (เลขที่จดแจ้ง / เลขที่จดแจ้งเครื่องสำอาง)");
+  if (fdaResult) {
+    if (fdaResult.success) {
+      add("7. เลขที่ใบรับจดแจ้ง", "pass", `พบข้อมูลในระบบ อย. เลขจดแจ้ง: ${fdaNumber} (สถานะ: ${fdaResult.cncnm || 'คงอยู่'})`);
+    } else {
+      add("7. เลขที่ใบรับจดแจ้ง", "fail", `ไม่พบเลขจดแจ้ง "${fdaNumber}" ในระบบ อย. (อาจเป็นผลิตภัณฑ์ใหม่ที่ยังไม่ได้ขึ้นทะเบียน หรือใส่ตัวเลขไม่ถูกต้อง)`);
+      recs.push(`ตรวจสอบความถูกต้องของเลขที่ใบรับจดแจ้ง: ${fdaNumber} (ไม่พบในระบบ อย.)`);
+    }
+  } else {
+    const notifyKW  = /เลขที่ใบรับจดแจ้ง|เลขที่จดแจ้ง|เลขจดแจ้ง|ใบรับแจ้ง|หมายเลขจดแจ้ง/i.test(t);
+    const notifyNum = /\b\d{2,3}-\d-\d{6,}\b|\b\d{10,13}\b/.test(t);
+    const notifyPH  = /x{5,}|0{5,}/i.test(t);
+    add("7. เลขที่ใบรับจดแจ้ง",
+      notifyPH ? "warn" : (notifyKW && notifyNum) ? "pass" : (notifyKW || notifyNum) ? "warn" : "fail",
+      notifyPH ? "พบ placeholder แทนเลขที่ใบรับจดแจ้ง"
+        : (notifyKW && notifyNum) ? "พบคำว่าเลขที่ใบรับจดแจ้ง พร้อมตัวเลข"
+        : notifyKW ? "พบคำว่าเลขที่ใบรับจดแจ้ง แต่ไม่พบตัวเลข"
+        : notifyNum ? "พบรูปแบบตัวเลขคล้ายเลขจดแจ้ง"
+        : "ไม่พบเลขที่ใบรับจดแจ้ง");
+    if (!notifyKW && !notifyNum) recs.push("ต้องระบุเลขที่ใบรับจดแจ้ง (เลขที่จดแจ้ง / เลขที่จดแจ้งเครื่องสำอาง)");
+  }
 
   // 8. คำต้องห้าม
   const bFound = checkBanned(t);
@@ -2645,7 +2705,7 @@ function analyzeOCRText(t) {
   }
 
   const pct = Math.min(100, Math.round((score / (8 * 12)) * 100));
-  return { items, score: pct, recs, bFound };
+  return { items, score: pct, recs, bFound, fdaResult, fdaNumber, rawText: t };
 }
 
 function renderOCRAnalysis(result) {
@@ -2672,8 +2732,121 @@ function renderOCRAnalysis(result) {
         <span class="score-verdict ${verdict.cls}">${verdict.text}</span>
         <div class="score-desc">${s >= 80 ? 'ฉลากมีข้อมูลครบถ้วนตามข้อกำหนด' : s >= 50 ? 'ฉลากมีข้อมูลบางส่วน ควรเพิ่มเติม' : 'ฉลากยังขาดข้อมูลสำคัญ'}</div>
       </div>
-    </div>
-    <div class="analysis-grid">`;
+    </div>`;
+
+  // Append FDA registration status card if check was performed
+  if (result.fdaResult) {
+    if (result.fdaResult.success) {
+      const data = result.fdaResult;
+      const statusText = (data.cncnm || "").trim();
+      const activeKeywords = ["คงอยู่", "อนุมัติ", "active", "approved"];
+      const isActive = activeKeywords.some(keyword => statusText.toLowerCase().includes(keyword));
+      const displayStatusText = statusText || "ไม่ระบุสถานะ";
+      const pillIcon = isActive ? "✅" : "🚫";
+
+      // Check if product name in FDA matches the label text
+      let nameMatchAlert = "";
+      const rawText = (result.rawText || "").toLowerCase().replace(/\s+/g, '');
+      const cleanFdaName = (data.productha || "").toLowerCase().replace(/\s+/g, '');
+      const cleanFdaNameEng = (data.produceng || "").toLowerCase().replace(/\s+/g, '');
+      
+      const match = (cleanFdaName && rawText.includes(cleanFdaName)) ||
+                    (cleanFdaNameEng && rawText.includes(cleanFdaNameEng));
+
+      if (match) {
+        nameMatchAlert = `
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
+            <span>🟢 <strong>ข้อมูลจับคู่ตรงกัน:</strong> ชื่อผลิตภัณฑ์บนฉลากสอดคล้องกับฐานข้อมูลใบรับจดแจ้ง อย.</span>
+          </div>
+        `;
+      } else {
+        nameMatchAlert = `
+          <div style="background:#fff1f2; border:1px solid #fecdd3; color:#be123c; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; display:flex; align-items:center; gap:8px;">
+            <span>⚠️ <strong>ข้อควรระวัง (ข้อมูลไม่ตรงกัน):</strong> ชื่อจดแจ้งจริง ("${data.productha}") อาจไม่ตรงกับชื่อบนฉลาก หรือไม่สามารถตรวจพบในรูปได้ กรุณาตรวจสอบอีกครั้ง</span>
+          </div>
+        `;
+      }
+
+      html += `
+        <div style="margin-top:20px; margin-bottom:20px;">
+          ${nameMatchAlert}
+          <div style="background:#ffffff; color:#334155; border: 2px solid ${isActive ? '#22c55e' : '#ef4444'}; border-radius: 12px; padding: 24px; position:relative; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.05); font-family:'Prompt', sans-serif;">
+            <div style="position:absolute; right:-15px; bottom:-15px; width:150px; height:150px; opacity:0.06; pointer-events:none;">
+              <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" stroke-width="2"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="2,2"/>
+                <text x="50" y="55" font-size="8" font-weight="bold" text-anchor="middle" fill="#1e293b">อย. THAILAND</text>
+              </svg>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom:12px; margin-bottom:18px;">
+              <div style="text-align:left;">
+                <span style="font-size:0.68rem; font-weight:700; color:#64748b; letter-spacing:1px; text-transform:uppercase;">OFFICIAL FDA REGISTRATION STATUS</span>
+                <h3 style="font-size:1.2rem; font-weight:800; color:#0f172a; margin-top:2px;">ข้อมูลใบรับจดแจ้งเครื่องสำอาง (อย.)</h3>
+              </div>
+              <div style="text-align:right;">
+                <span style="display:inline-block; padding:6px 14px; border-radius:99px; font-size:0.75rem; font-weight:700; border:1px solid; ${isActive ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fff1f2; color:#be123c; border-color:#fecdd3;'}">
+                  ${pillIcon} ${displayStatusText}
+                </span>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; text-align:left; font-size:0.88rem;">
+              <div>
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">เลขที่ใบรับจดแจ้ง</div>
+                <div style="font-size:1.1rem; font-weight:800; color:#0f172a; margin-top:2px;">${data.lcnno || result.fdaNumber}</div>
+              </div>
+              <div>
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ประเภทผลิตภัณฑ์</div>
+                <div style="font-weight:600; color:#334155; margin-top:2px;">${data.typepro || '-'}</div>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาไทย)</div>
+                <div style="font-size:1rem; font-weight:700; color:#0f172a; margin-top:2px;">${data.productha || '-'}</div>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ชื่อผลิตภัณฑ์ (ภาษาอังกฤษ)</div>
+                <div style="font-size:0.9rem; font-weight:600; color:#475569; margin-top:2px;">${data.produceng || '-'}</div>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ผู้รับจดแจ้ง / เจ้าของแบรนด์</div>
+                <div style="font-weight:600; color:#334155; margin-top:2px;">${data.licen || '-'}</div>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">ผู้ผลิต</div>
+                <div style="font-weight:600; color:#475569; margin-top:2px; font-size:0.84rem;">${data.thanm || '-'}</div>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">สถานที่ผลิต / ที่ตั้ง</div>
+                <div style="font-weight:600; color:#475569; margin-top:2px; font-size:0.84rem;">${data.Addr || '-'}</div>
+              </div>
+              <div>
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่อนุมัติจดแจ้ง</div>
+                <div style="font-weight:600; color:#334155; margin-top:2px;">${data.appDate || '-'}</div>
+              </div>
+              <div>
+                <div style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">วันที่หมดอายุใบจดแจ้ง</div>
+                <div style="font-weight:600; color:#334155; margin-top:2px;">${data.expDate || '-'}</div>
+              </div>
+            </div>
+            <div style="margin-top:20px; border-top: 1px dashed #e2e8f0; padding-top:12px; font-size:0.72rem; color:#94a3b8; display:flex; justify-content:space-between; align-items:center;">
+              <span>🔍 ดึงข้อมูลแบบ Realtime จากฐานข้อมูลระบบ อย. ประเทศไทย</span>
+              <span>สสจ.ศรีสะเกษ</span>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="alert alert-err" style="display:block; text-align:left; font-family:'Prompt', sans-serif; margin-top:20px; margin-bottom:20px;">
+          <strong>❌ ไม่พบข้อมูลเลขจดแจ้ง "${result.fdaNumber}" ในระบบสืบค้นของ อย.</strong><br>
+          <span style="font-size:0.88rem; display:block; margin-top:6px; color:rgba(255,255,255,0.7)">
+            หมายเลขนี้อาจเป็นผลิตภัณฑ์ใหม่ที่ยังไม่ขึ้นทะเบียน หรือใส่เลขจดแจ้งผิดพลาด หากเป็นแบบร่างฉลากผลิตภัณฑ์ใหม่ที่ยังไม่ได้ขึ้นทะเบียน ท่านสามารถดำเนินการตรวจสอบความถูกต้องของข้อความบังคับอื่นๆ บนฉลากต่อได้ทางด้านล่างครับ
+          </span>
+        </div>
+      `;
+    }
+  }
+
+  html += `<div class="analysis-grid">`;
 
   result.items.forEach((item, idx) => {
     const icon = item.status==="pass"?"✅":item.status==="warn"?"⚠️":"❌";
