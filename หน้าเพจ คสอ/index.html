@@ -103,25 +103,7 @@
                 </div>
             </div>
 
-            <!-- แถวที่ 3: สถิติงานสร้าง/ตรวจฉลากในระบบ (2 กล่อง) -->
-            <div class="exec-kpi-grid-2">
-                <div class="exec-card" style="align-items: center; text-align: center;">
-                    <div class="exec-card-title">ความถูกต้องของฉลาก</div>
-                    <div class="exec-card-value" style="color: #059669;">
-                        <span id="stat-correct-count">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span> 
-                        <span style="font-size: 1.1rem; font-weight: 600; margin-left: 5px; color: #059669;">(<span id="stat-correct-percent">0</span>%)</span>
-                    </div>
-                </div>
-                <div class="exec-card" style="align-items: center; text-align: center;">
-                    <div class="exec-card-title">ความบกพร่องของฉลาก</div>
-                    <div class="exec-card-value" style="color: #ef4444;">
-                        <span id="stat-defective-count">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span> 
-                        <span style="font-size: 1.1rem; font-weight: 600; margin-left: 5px; color: #ef4444;">(<span id="stat-defective-percent">0</span>%)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- แถวที่ 3 (3 กล่อง) -->
+            <!-- แถวที่ 3: รายงานผลทดสอบและการใช้งานสะสม (3 กล่อง) -->
             <div class="exec-kpi-grid-3">
                 <div class="exec-card" style="align-items: center; text-align: center; justify-content: center; min-height: 110px;">
                     <div class="exec-card-title" style="margin-bottom: 5px;">ผลสอบ Learning/Test (ผ่าน 70%)</div>
@@ -133,17 +115,15 @@
                 <div class="exec-card" style="align-items: center; text-align: center; justify-content: center; min-height: 110px;">
                     <div class="exec-card-title" style="margin-bottom: 5px;">เจ้าหน้าที่ใช้งานสะสม</div>
                     <div style="font-size: 0.9rem; color: #475569; font-weight: 500; line-height: 1.6;">
-                        ออกแบบ: <span id="stat-officer-designs" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง / 
-                        ตรวจรูป: <span id="stat-officer-ocr" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง<br>
-                        ตรวจเลขที่จดแจ้ง: <span id="stat-officer-fda" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง
+                        ออกแบบ: <span id="stat-officer-designs" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง<br>
+                        ตรวจรูป: <span id="stat-officer-ocr" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง
                     </div>
                 </div>
                 <div class="exec-card" style="align-items: center; text-align: center; justify-content: center; min-height: 110px;">
                     <div class="exec-card-title" style="margin-bottom: 5px;">ผู้ประกอบการใช้งานสะสม</div>
                     <div style="font-size: 0.9rem; color: #475569; font-weight: 500; line-height: 1.6;">
-                        ออกแบบ: <span id="stat-user-designs" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง / 
-                        ตรวจรูป: <span id="stat-user-ocr" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง<br>
-                        ตรวจเลขที่จดแจ้ง: <span id="stat-user-fda" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง
+                        ออกแบบ: <span id="stat-user-designs" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง<br>
+                        ตรวจรูป: <span id="stat-user-ocr" style="color: #0F172A; font-weight: 700;">0</span> ครั้ง
                     </div>
                 </div>
             </div>
@@ -501,13 +481,15 @@
                 animateDynamicValue('stat-learn-user-pass', finalUserPass, false);
                 animateDynamicValue('stat-learn-officer-pass', finalOfficerPass, false);
                 
+                // ยุบรวม ตรวจเลขที่จดแจ้ง เข้ากับ ตรวจจากรูป
+                const totalOfficerOcr = (data.officerOcrChecks ?? 0) + (data.officerFdaChecks ?? 0);
+                const totalUserOcr = (data.userOcrChecks ?? 0) + (data.userFdaChecks ?? 0);
+
                 animateDynamicValue('stat-officer-designs', data.officerLabelDesigns ?? 0, false);
-                animateDynamicValue('stat-officer-ocr', data.officerOcrChecks ?? 0, false);
-                animateDynamicValue('stat-officer-fda', data.officerFdaChecks ?? 0, false);
+                animateDynamicValue('stat-officer-ocr', totalOfficerOcr, false);
 
                 animateDynamicValue('stat-user-designs', data.userLabelDesigns ?? 0, false);
-                animateDynamicValue('stat-user-ocr', data.userOcrChecks ?? 0, false);
-                animateDynamicValue('stat-user-fda', data.userFdaChecks ?? 0, false);
+                animateDynamicValue('stat-user-ocr', totalUserOcr, false);
 
                 // กราฟความเชื่อมั่นและความพึงพอใจ (ปรับเป็นกราฟแท่งแนวนอน และคงสีและธีมขาวเป็นทางการ)
                 const ctxSat = document.getElementById('satisfactionBarChart');
@@ -603,11 +585,9 @@
                 
                 animateDynamicValue('stat-officer-designs', 0, false);
                 animateDynamicValue('stat-officer-ocr', 0, false);
-                animateDynamicValue('stat-officer-fda', 0, false);
 
                 animateDynamicValue('stat-user-designs', 6, false);
-                animateDynamicValue('stat-user-ocr', 3, false);
-                animateDynamicValue('stat-user-fda', 2, false);
+                animateDynamicValue('stat-user-ocr', 5, false);
 
                 // กราฟจำลองความพึงพอใจและความเชื่อมั่น
                 const ctxSat = document.getElementById('satisfactionBarChart');
