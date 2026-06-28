@@ -2176,12 +2176,19 @@ async function saveHistory(result) {
   const userId = window.currentUser?.id || 'guest';
   const historyKey = "cosme_history_" + userId;
   const records = JSON.parse(localStorage.getItem(historyKey) || "[]");
+  
+  let typeVal = "";
+  try {
+    typeVal = document.getElementById("type").value;
+  } catch(e) {}
+
   records.unshift({
     name: result.name || "(ไม่ระบุชื่อ)",
     score: result.score,
     date: new Date().toLocaleString("th-TH"),
-    type: document.getElementById("type").value || "",
+    type: typeVal || "",
     recs: result.recs.length,
+    recList: result.recs || []
   });
   if (records.length > 10) records.pop();
   localStorage.setItem(historyKey, JSON.stringify(records));
@@ -2246,14 +2253,34 @@ function renderHistory() {
       </div>`;
     }
     const cls = r.score >= 80 ? "hs-good" : r.score >= 50 ? "hs-warn" : "hs-bad";
-    return `<div class="history-item">
+    const hasRecs = r.recList && r.recList.length > 0;
+    const clickAttr = hasRecs ? `onclick="toggleHistoryDetail(this)" style="cursor:pointer;"` : "";
+    
+    return `<div class="history-item" ${clickAttr}>
       <div class="history-item-header">
         <span class="history-item-name">📝 ${esc(r.name)}</span>
         <span class="history-score ${cls}">${r.score}%</span>
       </div>
-      <div class="history-item-meta">${r.type ? r.type+' · ' : ''}${r.date} · ข้อแนะนำ ${r.recs} รายการ</div>
+      <div class="history-item-meta">
+        ${r.type ? r.type+' · ' : ''}${r.date} · ข้อแนะนำ ${r.recs} รายการ
+        ${hasRecs ? `<div style="font-size:0.72rem; color:#2563eb; margin-top:4px; font-weight:600;">🔽 คลิกเพื่อดูข้อแนะนำการปรับปรุง</div>` : ''}
+      </div>
+      ${hasRecs ? `
+      <div class="history-detail-panel" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:0.8rem; line-height: 1.6;">
+        <strong style="color:var(--text-main); display:block; margin-bottom:4px;">📋 รายละเอียดข้อแนะนำ:</strong>
+        <ol style="padding-left:18px; margin:0;">
+          ${r.recList.map(item => `<li style="margin-bottom:4px; color:var(--text-sub);">${esc(item)}</li>`).join("")}
+        </ol>
+      </div>` : ''}
     </div>`;
   }).join("");
+}
+
+function toggleHistoryDetail(elem) {
+  const panel = elem.querySelector(".history-detail-panel");
+  if (panel) {
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  }
 }
 
 function clearHistory() {
