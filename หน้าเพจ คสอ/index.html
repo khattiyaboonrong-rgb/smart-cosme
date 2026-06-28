@@ -59,6 +59,23 @@
         <div class="container">
             <h2 class="section-title" style="text-align: center; margin-bottom: 50px; font-size: 2.2rem;">สถิติการใช้งานและผลการดำเนินงาน<br>ระบบ SISAKET SMART COSME</h2>
             
+            <!-- แถวที่ 1: สรุปภาพรวมระบบ (3 กล่อง) -->
+            <div class="exec-kpi-grid-3">
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">จำนวนครั้งที่ใช้งานระบบสะสม</div>
+                    <div class="exec-card-value" style="color: #1e293b;"><span id="stat-total-usage">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span></div>
+                </div>
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">ผู้ประกอบการใช้งานระบบ</div>
+                    <div class="exec-card-value" style="color: #0ea5e9;"><span id="stat-entrepreneurs">0</span> <span style="font-size: 1rem; color: #94A3B8;">คน</span></div>
+                </div>
+                <div class="exec-card" style="align-items: center; text-align: center;">
+                    <div class="exec-card-title">เจ้าหน้าที่ใช้งานระบบ</div>
+                    <div class="exec-card-value" style="color: #059669;"><span id="stat-officers">0</span> <span style="font-size: 1rem; color: #94A3B8;">คน</span></div>
+                </div>
+            </div>
+
+            <!-- แถวที่ 2: งานตรวจประเมินสถานที่และฉลากร้านค้า (4 กล่อง) -->
             <div class="exec-kpi-grid-4">
                 <div class="exec-card" style="align-items: center; text-align: center;">
                     <div class="exec-card-title">สถานที่จำหน่ายที่ตรวจสะสม (จ.ศรีสะเกษ)</div>
@@ -78,6 +95,7 @@
                 </div>
             </div>
 
+            <!-- กราฟหัวข้อบกพร่อง -->
             <div class="exec-card exec-card-full" style="margin-bottom: 80px;">
                 <div class="exec-card-title" style="text-align: center; font-size: 1.2rem; color: #1e293b; font-weight: 600;">สัดส่วนหัวข้อข้อบกพร่องบนฉลากเครื่องสำอาง (%)</div>
                 <div class="chart-wrapper">
@@ -85,25 +103,8 @@
                 </div>
             </div>
 
-            
-            <!-- แถวที่ 1 (2 กล่อง) -->
+            <!-- แถวที่ 3: สถิติงานสร้าง/ตรวจฉลากในระบบ (2 กล่อง) -->
             <div class="exec-kpi-grid-2">
-                <div class="exec-card" style="align-items: center; text-align: center;">
-                    <div class="exec-card-title">ผู้ประกอบการใช้งานระบบ</div>
-                    <div class="exec-card-value" style="color: #0ea5e9;"><span id="stat-entrepreneurs">0</span> <span style="font-size: 1rem; color: #94A3B8;">คน</span></div>
-                </div>
-                <div class="exec-card" style="align-items: center; text-align: center;">
-                    <div class="exec-card-title">เจ้าหน้าที่ใช้งานระบบ</div>
-                    <div class="exec-card-value" style="color: #059669;"><span id="stat-officers">0</span> <span style="font-size: 1rem; color: #94A3B8;">คน</span></div>
-                </div>
-            </div>
-
-            <!-- แถวที่ 2 (3 กล่อง) -->
-            <div class="exec-kpi-grid-3">
-                <div class="exec-card" style="align-items: center; text-align: center;">
-                    <div class="exec-card-title">จำนวนครั้งที่ใช้งานระบบสะสม</div>
-                    <div class="exec-card-value" style="color: #1e293b;"><span id="stat-total-usage">0</span> <span style="font-size: 1rem; color: #94A3B8;">ครั้ง</span></div>
-                </div>
                 <div class="exec-card" style="align-items: center; text-align: center;">
                     <div class="exec-card-title">ความถูกต้องของฉลาก</div>
                     <div class="exec-card-value" style="color: #059669;">
@@ -418,6 +419,18 @@
         const supabaseCosme = supabase.createClient(SMART_COSME_URL, SMART_COSME_KEY);
         const supabaseUltra = supabase.createClient(SMART_ULTRA_URL, SMART_ULTRA_KEY);
 
+        // Global tracker for cumulative usage count (sum of labels + tests + inspections)
+        let dashboardStats = {
+            labelUsage: 0,
+            testUsage: 0,
+            inspectionUsage: 0
+        };
+
+        function updateCumulativeUsage() {
+            const total = dashboardStats.labelUsage + dashboardStats.testUsage + dashboardStats.inspectionUsage;
+            animateDynamicValue('stat-total-usage', total, false);
+        }
+
         // ==========================================
         // 2. ฟังก์ชันดึงข้อมูลจาก Smart Cosme
         // ==========================================
@@ -433,6 +446,7 @@
                 let liveOfficerCount = 0;
                 let liveUserPass = 0;
                 let liveOfficerPass = 0;
+                let liveTestsTaken = 0;
 
                 try {
                     const { data: examData, error } = await supabaseCosme
@@ -440,6 +454,7 @@
                         .select('role, passed');
                     
                     if (!error && examData) {
+                        liveTestsTaken = examData.length;
                         examData.forEach(row => {
                             if (row.role === 'ผู้ประกอบการ') {
                                 liveUserCount++;
@@ -459,6 +474,7 @@
                 const baseOfficers = 14;       
                 const baseUserPass = 12;      
                 const baseOfficerPass = 5;    
+                const baseTestsTaken = 25; // fallback สำหรับคนทำแบบทดสอบทั้งหมด
 
                 const finalEntrepreneurs = baseEntrepreneurs + liveUserCount;
                 const finalOfficers = baseOfficers + liveOfficerCount;
@@ -469,9 +485,13 @@
                 animateDynamicValue('stat-entrepreneurs', finalEntrepreneurs, false);
                 animateDynamicValue('stat-officers', finalOfficers, false);
 
-                // อัปเดต KPI แถวที่ 2
-                const totalUsage = (data.labelDesigns ?? 0) + (data.ocrChecks ?? 0) + (data.fdaChecks ?? 0);
-                animateDynamicValue('stat-total-usage', totalUsage, false);
+                // คำนวณและอัปเดตสถิติสำหรับการใช้งานระบบสะสม (สร้างฉลาก ตรวจรูป ตรวจเลข)
+                const totalLabelUsage = (data.labelDesigns ?? 0) + (data.ocrChecks ?? 0) + (data.fdaChecks ?? 0);
+                dashboardStats.labelUsage = totalLabelUsage;
+                dashboardStats.testUsage = baseTestsTaken + liveTestsTaken;
+                updateCumulativeUsage();
+
+                // อัปเดต KPI อื่นๆ
                 animateDynamicValue('stat-correct-count', data.correctLabelsCount ?? 0, false);
                 animateDynamicValue('stat-correct-percent', data.correctLabelsPercent ?? 0, false);
                 animateDynamicValue('stat-defective-count', data.defectiveLabelsCount ?? 0, false);
@@ -567,8 +587,11 @@
                 animateDynamicValue('stat-entrepreneurs', baseEntrepreneurs, false);
                 animateDynamicValue('stat-officers', baseOfficers, false);
 
-                // แถวที่ 2
-                animateDynamicValue('stat-total-usage', 11, false);
+                // อัปเดตและคำนวณการใช้งานตรวจฉลากจำลอง
+                dashboardStats.labelUsage = 11;
+                dashboardStats.testUsage = baseUserPass + baseOfficerPass;
+                updateCumulativeUsage();
+
                 animateDynamicValue('stat-correct-count', 5, false);
                 animateDynamicValue('stat-correct-percent', 83, false);
                 animateDynamicValue('stat-defective-count', 1, false);
@@ -701,6 +724,10 @@
                 animateDynamicValue('stat-prohibited-shops', totalMedDanger, false);
                 animateDynamicValue('stat-defective-products', totalCosDanger, false);
 
+                // อัปเดตและคำนวณการใช้งานสำหรับแอพตรวจสถานที่จำหน่ายสะสม
+                dashboardStats.inspectionUsage = totalInspections;
+                updateCumulativeUsage();
+
                 if (data.defectLabels && data.defectData) {
                     defectLabels = data.defectLabels;
                     defectData = data.defectData;
@@ -715,6 +742,10 @@
                 animateDynamicValue('stat-cleanliness', 93.5, true);
                 animateDynamicValue('stat-prohibited-shops', 2, false);
                 animateDynamicValue('stat-defective-products', 1, false);
+
+                // อัปเดตและคำนวณการใช้งานสำหรับแอพตรวจสถานที่จำหน่ายสะสม (fallback)
+                dashboardStats.inspectionUsage = 9;
+                updateCumulativeUsage();
             }
 
             // วาดกราฟแท่งแนวนอน "ปัญหาที่พบจากการตรวจฉลาก"
