@@ -129,7 +129,7 @@
             </div>
 
             <!-- กราฟความพึงพอใจและความเชื่อมั่นด้านล่างสุด (เต็มจอ) -->
-            <div class="exec-card exec-card-full" style="margin-bottom: 80px;">
+            <div class="exec-card exec-card-full" style="margin-bottom: 30px;">
                 <div class="exec-card-title" style="text-align: center; font-size: 1.2rem; color: #0F172A; font-weight: 600;">ความเชื่อมั่นและความพึงพอใจ</div>
                 <div class="chart-wrapper" style="min-height: 250px;">
                     <canvas id="satisfactionBarChart"></canvas>
@@ -416,7 +416,7 @@
         // ==========================================
         async function fetchSmartCosmeData() {
             try {
-                const API_BASE = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3001' : 'https://smart-cosme.onrender.com';
+                 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3001' : 'https://smart-cosme.onrender.com';
                 const response = await fetch(`${API_BASE}/api/public/stats`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
@@ -439,7 +439,7 @@
                             if (row.role === 'ผู้ประกอบการ') {
                                 liveUserCount++;
                                 if (row.passed) liveUserPass++;
-                            } else if (row.role === 'พนักงานเจ้าหน้าที่') {
+                            } else if (row.role === 'พนักงานเจ้าหน้าที่' || row.role === 'เจ้าหน้าที่') {
                                 liveOfficerCount++;
                                 if (row.passed) liveOfficerPass++;
                             }
@@ -449,17 +449,11 @@
                     console.error('Supabase query error for exam stats:', e);
                 }
 
-                // ค่าสถิติจำลองเริ่มต้น (Base fallback) บวกด้วยข้อมูลจริงจากหลังบ้าน (Live database values)
-                const baseEntrepreneurs = 18; 
-                const baseOfficers = 14;       
-                const baseUserPass = 12;      
-                const baseOfficerPass = 5;    
-                const baseTestsTaken = 25; // fallback สำหรับคนทำแบบทดสอบทั้งหมด
-
-                const finalEntrepreneurs = baseEntrepreneurs + liveUserCount;
-                const finalOfficers = baseOfficers + liveOfficerCount;
-                const finalUserPass = baseUserPass + liveUserPass;
-                const finalOfficerPass = baseOfficerPass + liveOfficerPass;
+                // ใช้ข้อมูลจริงจากฐานข้อมูลเมื่อดึงสำเร็จ (ไม่บวกค่าจำลอง)
+                const finalEntrepreneurs = data.entrepreneurs ?? 0;
+                const finalOfficers = data.officers ?? 0;
+                const finalUserPass = liveUserPass;
+                const finalOfficerPass = liveOfficerPass;
 
                 // อัปเดต KPI แถวที่ 1 (ผู้ประกอบการ/เจ้าหน้าที่ใช้งานระบบ)
                 animateDynamicValue('stat-entrepreneurs', finalEntrepreneurs, false);
@@ -468,7 +462,7 @@
                 // คำนวณและอัปเดตสถิติสำหรับการใช้งานระบบสะสม (สร้างฉลาก ตรวจรูป ตรวจเลข)
                 const totalLabelUsage = (data.labelDesigns ?? 0) + (data.ocrChecks ?? 0) + (data.fdaChecks ?? 0);
                 dashboardStats.labelUsage = totalLabelUsage;
-                dashboardStats.testUsage = baseTestsTaken + liveTestsTaken;
+                dashboardStats.testUsage = liveTestsTaken;
                 updateCumulativeUsage();
 
                 // อัปเดต KPI อื่นๆ
@@ -870,7 +864,7 @@
                 scrollToBottom();
 
                 try {
-                    const API_BASE = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3001' : 'https://smart-cosme.onrender.com';
+                    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3001' : 'https://smart-cosme.onrender.com';
                     const response = await fetch(`${API_BASE}/api/ai/chat`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
