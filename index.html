@@ -1263,14 +1263,7 @@ body::after {
 
       <hr class="divider">
 
-      <button class="btn btn-primary" id="generateBtn" onclick="generate()">✨ สร้างฉลาก &amp; ตรวจสอบ</button>
-      <div class="btn-group">
-        <button class="btn btn-outline" onclick="downloadPNG()">📷 บันทึก PNG</button>
-        <button class="btn btn-outline" onclick="downloadPDF()">📄 บันทึก PDF</button>
-      </div>
-      <button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="copyLabel()">📋 คัดลอกข้อมูลฉลาก</button>
-      <button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="printLabel()">🖨️ พิมพ์ฉลาก</button>
-      <button class="btn btn-outline" style="margin-top:8px;width:100%;color:rgba(255,80,80,0.7);border-color:rgba(255,80,80,0.2);" onclick="clearForm()">🗑️ ล้างข้อมูลทั้งหมด</button>
+      <button class="btn btn-primary" id="generateBtn" onclick="generate()" style="width:100%;">✨ สร้างฉลาก &amp; ตรวจสอบ</button>
     </div>
 
     <!-- Analysis Result (form-based) -->
@@ -1298,6 +1291,15 @@ body::after {
           </div>
         </div>
       </div>
+
+      <!-- Action buttons moved below the preview -->
+      <div class="btn-group" style="margin-top:20px;">
+        <button class="btn btn-outline" onclick="downloadPNG()">📷 บันทึก PNG</button>
+        <button class="btn btn-outline" onclick="downloadPDF()">📄 บันทึก PDF</button>
+      </div>
+      <button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="copyLabel()">📋 คัดลอกข้อมูลฉลาก</button>
+      <button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="printLabel()">🖨️ พิมพ์ฉลาก</button>
+      <button class="btn btn-outline" style="margin-top:8px;width:100%;color:rgba(255,80,80,0.7);border-color:rgba(255,80,80,0.2);" onclick="clearForm()">🗑️ ล้างข้อมูลทั้งหมด</button>
     </div>
   </div>
 
@@ -1988,6 +1990,21 @@ function generate() {
 
   const hasPhone = /(?:โทร|tel|phone|t\.|contact)/i.test(mfr) || /\d{9,10}/.test(mfr.replace(/[- ]/g, '')) || /0[2-9]\d{7}/.test(mfr.replace(/[- ]/g, ''));
   if (!hasPhone) { showToast("⚠️ กรุณาระบุเบอร์โทรศัพท์ในช่องผู้ผลิต/ผู้จำหน่ายด้วย"); return; }
+
+  // Check for banned words in all input fields
+  const type = document.getElementById("type").value || document.getElementById("typeOther").value || "";
+  const ing  = document.getElementById("ing").value.trim();
+  const usage = document.getElementById("usage").value.trim();
+  const claim = document.getElementById("claim").value.trim();
+
+  const allText = [name, type, ing, usage, mfr, claim].join(" ");
+  const bFound = checkBanned(allText);
+  const allBanned = [...bFound.exag, ...bFound.mislead, ...bFound.medical, ...bFound.body];
+
+  if (allBanned.length > 0) {
+    alert(`❌ ไม่สามารถสร้างฉลากได้เนื่องจากตรวจพบคำต้องห้าม / โฆษณาเกินจริง (มาตรา 41):\n\nคำที่พบ: ${allBanned.join(", ")}\n\nกรุณาแก้ไขข้อความเหล่านี้ในแบบฟอร์มก่อนจึงจะสามารถสร้างฉลากและวิเคราะห์ผลได้ครับ`);
+    return;
+  }
 
   autoPreview();
   const result = analyzeFormData();
