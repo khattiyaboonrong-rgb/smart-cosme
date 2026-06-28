@@ -57,12 +57,7 @@
     <!-- AI Analytics Center Section -->
     <section class="exec-dashboard">
         <div class="container">
-            <h2 class="section-title" style="text-align: center; margin-bottom: 50px; font-size: 2.2rem;">สถิติการใช้งานและผลการดำเนินงาน</h2>
-
-            <div style="text-align: center; margin-bottom: 40px;">
-                <h3 class="section-title" style="margin-bottom: 5px; font-size: 1.8rem; border-bottom: 3px solid #0056b3; display: inline-block; padding-bottom: 10px;">SMART COSME ULTRA PRO</h3>
-                <div style="font-size: 1.2rem; color: #64748B; font-weight: 500; margin-top: 10px;">ระบบเฝ้าระวังและตรวจประเมินร้านจำหน่ายเครื่องสำอาง</div>
-            </div>
+            <h2 class="section-title" style="text-align: center; margin-bottom: 50px; font-size: 2.2rem;">สถิติการใช้งานและผลการดำเนินงานระบบ SISAKET SMART COSME</h2>
             
             <div class="exec-kpi-grid-4">
                 <div class="exec-card" style="align-items: center; text-align: center;">
@@ -90,9 +85,6 @@
                 </div>
             </div>
 
-            <div style="text-align: center; margin-bottom: 40px;">
-                <h2 class="section-title" style="margin-bottom: 5px;">SMART COSME</h2>
-            </div>
             
             <!-- แถวที่ 1 (2 กล่อง) -->
             <div class="exec-kpi-grid-2">
@@ -131,7 +123,7 @@
             <!-- แถวที่ 3 (3 กล่อง) -->
             <div class="exec-kpi-grid-3">
                 <div class="exec-card" style="align-items: center; text-align: center; justify-content: center; min-height: 110px;">
-                    <div class="exec-card-title" style="margin-bottom: 5px;">ผลสอบ Learning/Test (ผ่าน 80%)</div>
+                    <div class="exec-card-title" style="margin-bottom: 5px;">ผลสอบ Learning/Test (ผ่าน 70%)</div>
                     <div style="font-size: 0.95rem; color: #475569; font-weight: 500; line-height: 1.6;">
                         ผู้ประกอบการผ่าน: <span id="stat-learn-user-pass" style="color: #0284C7; font-weight: 700; font-size: 1.1rem;">0</span> คน<br>
                         เจ้าหน้าที่ผ่าน: <span id="stat-learn-officer-pass" style="color: #16A34A; font-weight: 700; font-size: 1.1rem;">0</span> คน
@@ -210,7 +202,7 @@
                 </a>
 
                 <!-- Card 4 -->
-                <a href="https://cosmetic.fda.moph.go.th/interesting-law/category/cosmetic-laws" target="_blank" rel="noopener noreferrer" class="beauty-card" title="กฎหมายที่เกี่ยวข้อง">
+                <a href="javascript:void(0)" onclick="openExamModal()" class="beauty-card" title="กฎหมายที่เกี่ยวข้อง">
                     <div class="beauty-silhouette silhouette-law"></div>
                     <div class="beauty-content">
                         <div class="beauty-icon">
@@ -220,6 +212,38 @@
                         <p>แบบทดสอบความรอบรู้</p>
                     </div>
                 </a>
+
+                <!-- Exam Selection Modal HTML Overlay -->
+                <div id="exam-modal-overlay" class="exam-modal-overlay">
+                    <div class="exam-modal">
+                        <div class="exam-modal-header">
+                            <h3>เลือกชุดข้อสอบวัดความรู้ พรบ.เครื่องสำอาง</h3>
+                            <button class="exam-modal-close" onclick="closeExamModal()">&times;</button>
+                        </div>
+                        <div class="exam-modal-body">
+                            <div class="exam-selection-grid">
+                                <!-- Card ผู้ประกอบการ -->
+                                <div class="exam-select-card user-card" onclick="startQuiz('user')">
+                                    <div>
+                                        <div class="exam-select-icon">🧴</div>
+                                        <h4>สำหรับผู้ประกอบการ</h4>
+                                        <p>วัดความรู้สำหรับการขออนุญาตสถานที่ผลิต การจดแจ้งรายละเอียดผลิตภัณฑ์ และการแสดงฉลากให้ถูกต้องตามกฎหมาย</p>
+                                    </div>
+                                    <button class="exam-select-btn">เริ่มทำข้อสอบ</button>
+                                </div>
+                                <!-- Card เจ้าหน้าที่ -->
+                                <div class="exam-select-card officer-card" onclick="startQuiz('officer')">
+                                    <div>
+                                        <div class="exam-select-icon">⚖️</div>
+                                        <h4>สำหรับพนักงานเจ้าหน้าที่</h4>
+                                        <p>วัดความรู้การตรวจสถานที่ผลิตเพื่อรับรองมาตรฐาน อำนาจหน้าที่ตาม พรบ.เครื่องสำอาง และการจัดการคดีความผิดต่างๆ</p>
+                                    </div>
+                                    <button class="exam-select-btn">เริ่มทำข้อสอบ</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Card 5 -->
                 <a href="#" class="beauty-card" title="เตือนภัยเครื่องสำอาง">
@@ -404,16 +428,46 @@
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
 
-                // ค่าสถิติจำลองการทดสอบ/โปรแกรมอื่นๆ (เนื่องจากระบบอยู่ระหว่างการสร้าง)
-                const learningEntrepreneurs = 15; 
-                const learningOfficers = 8;       
-                const ultraProOfficers = 5;       
-                const learningUserPass = 12;      
-                const learningOfficerPass = 5;    
+                // 🔹 ดึงข้อมูลจาก Supabase ตาราง exam_results
+                let liveUserCount = 0;
+                let liveOfficerCount = 0;
+                let liveUserPass = 0;
+                let liveOfficerPass = 0;
 
-                // อัปเดต KPI แถวที่ 1 (รวมยอดตามโจทย์)
-                animateDynamicValue('stat-entrepreneurs', (data.entrepreneurs ?? 0) + learningEntrepreneurs, false);
-                animateDynamicValue('stat-officers', (data.officers ?? 0) + ultraProOfficers + learningOfficers, false);
+                try {
+                    const { data: examData, error } = await supabaseCosme
+                        .from('exam_results')
+                        .select('role, passed');
+                    
+                    if (!error && examData) {
+                        examData.forEach(row => {
+                            if (row.role === 'ผู้ประกอบการ') {
+                                liveUserCount++;
+                                if (row.passed) liveUserPass++;
+                            } else if (row.role === 'พนักงานเจ้าหน้าที่') {
+                                liveOfficerCount++;
+                                if (row.passed) liveOfficerPass++;
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error('Supabase query error for exam stats:', e);
+                }
+
+                // ค่าสถิติจำลองเริ่มต้น (Base fallback) บวกด้วยข้อมูลจริงจากหลังบ้าน (Live database values)
+                const baseEntrepreneurs = 18; 
+                const baseOfficers = 14;       
+                const baseUserPass = 12;      
+                const baseOfficerPass = 5;    
+
+                const finalEntrepreneurs = baseEntrepreneurs + liveUserCount;
+                const finalOfficers = baseOfficers + liveOfficerCount;
+                const finalUserPass = baseUserPass + liveUserPass;
+                const finalOfficerPass = baseOfficerPass + liveOfficerPass;
+
+                // อัปเดต KPI แถวที่ 1 (ผู้ประกอบการ/เจ้าหน้าที่ใช้งานระบบ)
+                animateDynamicValue('stat-entrepreneurs', finalEntrepreneurs, false);
+                animateDynamicValue('stat-officers', finalOfficers, false);
 
                 // อัปเดต KPI แถวที่ 2
                 const totalUsage = (data.labelDesigns ?? 0) + (data.ocrChecks ?? 0) + (data.fdaChecks ?? 0);
@@ -423,9 +477,9 @@
                 animateDynamicValue('stat-defective-count', data.defectiveLabelsCount ?? 0, false);
                 animateDynamicValue('stat-defective-percent', data.defectiveLabelsPercent ?? 0, false);
 
-                // อัปเดต KPI แถวที่ 3
-                animateDynamicValue('stat-learn-user-pass', learningUserPass, false);
-                animateDynamicValue('stat-learn-officer-pass', learningOfficerPass, false);
+                // อัปเดต KPI แถวที่ 3 (รายงานผู้ผ่านการทดสอบแยกตามกลุ่ม)
+                animateDynamicValue('stat-learn-user-pass', finalUserPass, false);
+                animateDynamicValue('stat-learn-officer-pass', finalOfficerPass, false);
                 
                 animateDynamicValue('stat-officer-designs', data.officerLabelDesigns ?? 0, false);
                 animateDynamicValue('stat-officer-ocr', data.officerOcrChecks ?? 0, false);
@@ -503,16 +557,15 @@
             } catch (error) {
                 console.log('Error fetching Smart Cosme data, using fallback data:', error);
                 
-                // ข้อมูลสัญญาลักษณ์จำลองหากเกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลัก (เช่น Server sleep/CORS/Offline)
-                const learningEntrepreneurs = 15; 
-                const learningOfficers = 8;       
-                const ultraProOfficers = 5;       
-                const learningUserPass = 12;      
-                const learningOfficerPass = 5;    
+                // ข้อมูลสัญญาลักษณ์จำลองหากเกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลัก
+                const baseEntrepreneurs = 18; 
+                const baseOfficers = 14;       
+                const baseUserPass = 12;      
+                const baseOfficerPass = 5;    
 
                 // แถวที่ 1
-                animateDynamicValue('stat-entrepreneurs', 3 + learningEntrepreneurs, false);
-                animateDynamicValue('stat-officers', 1 + ultraProOfficers + learningOfficers, false);
+                animateDynamicValue('stat-entrepreneurs', baseEntrepreneurs, false);
+                animateDynamicValue('stat-officers', baseOfficers, false);
 
                 // แถวที่ 2
                 animateDynamicValue('stat-total-usage', 11, false);
@@ -522,8 +575,8 @@
                 animateDynamicValue('stat-defective-percent', 17, false);
 
                 // แถวที่ 3
-                animateDynamicValue('stat-learn-user-pass', learningUserPass, false);
-                animateDynamicValue('stat-learn-officer-pass', learningOfficerPass, false);
+                animateDynamicValue('stat-learn-user-pass', baseUserPass, false);
+                animateDynamicValue('stat-learn-officer-pass', baseOfficerPass, false);
                 
                 animateDynamicValue('stat-officer-designs', 0, false);
                 animateDynamicValue('stat-officer-ocr', 0, false);
@@ -866,6 +919,36 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         });
+
+        // Exam Modal Controls
+        function openExamModal() {
+            const overlay = document.getElementById('exam-modal-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    overlay.classList.add('active');
+                }, 10);
+            }
+        }
+
+        function closeExamModal() {
+            const overlay = document.getElementById('exam-modal-overlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        function startQuiz(type) {
+            closeExamModal();
+            if (type === 'user') {
+                window.location.href = '../ข้อสอบ/index.html';
+            } else if (type === 'officer') {
+                window.location.href = '../ข้อสอบ/index_officer.html';
+            }
+        }
     </script>
 </body>
 </html>
