@@ -1154,7 +1154,6 @@ body::after {
   <nav class="tab-nav" role="tablist" aria-label="เมนูหลัก">
     <button class="tab-btn active" id="tab-design" onclick="switchTab('design')" role="tab" aria-selected="true" aria-controls="panel-design">📝 ออกแบบฉลาก</button>
     <button class="tab-btn" id="tab-check" onclick="switchTab('check')" role="tab" aria-selected="false" aria-controls="panel-check">🔍 ตรวจฉลากรูปภาพ</button>
-    <button class="tab-btn" id="tab-fda" onclick="switchTab('fda')" role="tab" aria-selected="false" aria-controls="panel-fda">🪪 ตรวจเลขที่ใบจดแจ้ง</button>
     <button class="tab-btn" id="tab-law" onclick="switchTab('law')" role="tab" aria-selected="false" aria-controls="panel-law">⚖️ คำต้องห้าม</button>
     <button class="tab-btn" id="tab-history" onclick="switchTab('history')" role="tab" aria-selected="false" aria-controls="panel-history">📋 ประวัติ</button>
     <button class="tab-btn" id="tab-feedback" onclick="switchTab('feedback')" role="tab" aria-selected="false" aria-controls="panel-feedback">⭐ ความพึงพอใจ/ความเชื่อมั่น</button>
@@ -1356,74 +1355,6 @@ body::after {
       </div>
 
       <div id="imageResult"></div>
-    </div>
-  </div>
-
-  <!-- ================================================ TAB: FDA ================================================ -->
-  <div class="tab-panel" id="panel-fda" role="tabpanel" aria-labelledby="tab-fda">
-    <div class="glass-card">
-      <div class="section-title">
-        <div class="section-icon">🪪</div>
-        <div>
-          <h2>ตรวจสอบเลขที่ใบจดแจ้งจากรูปภาพ</h2>
-          <p>ถ่ายรูปบริเวณเลขที่ใบจดแจ้ง (เช่น 10-1-6200000) ระบบจะสแกนตัวเลขและค้นหาข้อมูลสถานะใบจดแจ้งให้ทันที</p>
-        </div>
-      </div>
-
-      <!-- Steps -->
-      <div class="steps-row">
-        <div class="step-item" id="fda-step1"><div class="step-num" id="fs1">1</div><span>อัปโหลดรูปภาพเลขที่ใบจดแจ้ง</span></div>
-        <div class="step-item" id="fda-step2"><div class="step-num" id="fs2">2</div><span>AI สแกนตัวเลข (OCR)</span></div>
-        <div class="step-item" id="fda-step3"><div class="step-num" id="fs3">3</div><span>แสดงผลสถานะใบจดแจ้ง</span></div>
-      </div>
-
-      <!-- Upload Zone for FDA No. -->
-      <label class="upload-zone" id="fdaUploadZone" for="fdaImageInput" style="display:block;">
-        <input type="file" id="fdaImageInput" accept="image/*" onchange="onFdaFileChange(event)" aria-label="อัปโหลดภาพเลขที่จดแจ้ง">
-        <div class="upload-icon-big">📸</div>
-        <div class="upload-text-main">ถ่ายภาพหรืออัปโหลดรูปเลขที่ใบจดแจ้งที่นี่</div>
-        <div class="upload-text-sub">ระบบจะตรวจจับกลุ่มตัวเลขโดยอัตโนมัติ</div>
-      </label>
-
-      <div id="fda-preview-container" style="display:none; position:relative; max-width:100%; max-height:260px; margin:16px auto; overflow:hidden; border-radius:var(--radius-md); border:2px solid var(--border);">
-        <img id="fda-preview-img" alt="ตัวอย่างรูปภาพเลขที่ใบจดแจ้งที่อัปโหลด" style="display:block; width:100%; height:auto; max-height:260px; object-fit:contain; margin:0 auto;">
-        <div class="scanner-reticle">
-          <div class="scanner-laser"></div>
-          <div class="scanner-label">จัดวางเลขที่จดแจ้งให้อยู่ในกรอบแนวนอน</div>
-        </div>
-      </div>
-
-      <div style="margin-top:16px; display:flex; gap:10px;">
-        <button class="btn btn-primary" id="fdaCheckBtn" onclick="checkFdaImage()" disabled aria-label="สแกนและค้นหาข้อมูลเลขที่ใบจดแจ้ง">
-          🔍 สแกนและตรวจสอบเลขที่ใบจดแจ้ง
-        </button>
-        <button class="btn btn-outline" onclick="showFdaManualInput()" aria-label="กรอกเลขเอง">
-          ⌨️ กรอกเลขจดแจ้งเอง
-        </button>
-      </div>
-
-      <!-- Manual Input Section -->
-      <div id="fdaManualInputSection" style="display:none; margin-top:20px; padding:16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--radius-md);">
-        <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:8px;">ระบุเลขที่ใบรับจดแจ้งเครื่องสำอาง (10 หลัก หรือ 13 หลัก):</label>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <input type="text" id="fdaManualInput" class="form-input" style="width:100%; box-sizing:border-box;" placeholder="เช่น 10-1-6200000 หรือ 1016200000">
-          <button class="btn btn-success" style="width:100%; margin:0;" onclick="searchFdaNumberDirect()">ค้นหาข้อมูล</button>
-        </div>
-      </div>
-
-      <!-- Progress Section -->
-      <div id="fda-progress-section" style="display:none; margin-top:20px;">
-        <div class="progress-wrap">
-          <div class="progress-header">
-            <span id="fda-progress-label-text">กำลังสแกนหาเลขที่ใบจดแจ้งในรูปภาพ...</span>
-            <span id="fda-progress-pct">0%</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" id="fda-progress-fill" style="width:0%"></div></div>
-        </div>
-      </div>
-
-      <!-- Results Section -->
-      <div id="fdaResultSection" style="display:none; margin-top:24px;"></div>
     </div>
   </div>
 
